@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree-e - Hierarchical Thinking</title>
+    <meta name="description" content="Tree-e: A minimalist app for hierarchical thinking, note-taking, and idea organization.">
+    <meta name="keywords" content="notes, hierarchy, thinking, organization, productivity, tree, branches">
+
+<!-- Favicon (you can replace with your own) -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23E8F5E8'/%3E%3Cpath d='M50 20v60M35 35l15 15 15-15M25 50l25 0 25 0' stroke='%232D4A2D' stroke-width='3' fill='none'/%3E%3C/svg%3E">
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- React and ReactDOM -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+<!-- Babel for JSX transformation -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<style>
+    /* Custom styles for better UX */
+    * {
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+    
+    /* Smooth transitions */
+    .node-container {
+        transition: all 0.3s ease-out;
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.1);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.2);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(0,0,0,0.3);
+    }
+    
+    /* Icon styles */
+    .icon {
+        display: inline-block;
+        vertical-align: middle;
+    }
+</style>
+
+
+</head>
+<body>
+    <div id="root"></div>
+
+
+<script type="text/babel">
+    const { useState, useRef, useEffect } = React;
+    
+    // Inline SVG Icons (replacing Lucide)
+    const Icons = {
+      Palette: () => React.createElement('svg', { className: 'icon', width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+        React.createElement('circle', { cx: 13.5, cy: 6.5, r: '.5' }),
+        React.createElement('circle', { cx: 17.5, cy: 10.5, r: '.5' }),
+        React.createElement('circle', { cx: 8.5, cy: 7.5, r: '.5' }),
+        React.createElement('circle', { cx: 6.5, cy: 12.5, r: '.5' }),
+        React.createElement('path', { d: 'M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z' })
+      ),
+      Trash2: ({ size = 20 }) => React.createElement('svg', { className: 'icon', width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+        React.createElement('polyline', { points: '3,6 5,6 21,6' }),
+        React.createElement('path', { d: 'm19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2' }),
+        React.createElement('line', { x1: 10, y1: 11, x2: 10, y2: 17 }),
+        React.createElement('line', { x1: 14, y1: 11, x2: 14, y2: 17 })
+      ),
+      AlertTriangle: ({ size = 24 }) => React.createElement('svg', { className: 'icon', width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+        React.createElement('path', { d: 'm21.73,18l-8,-14a2,2 0 0,0 -3.48,0l-8,14A2,2 0 0,0 4,21H20a2,2 0 0,0 1.73,-3Z' }),
+        React.createElement('line', { x1: 12, y1: 9, x2: 12, y2: 13 }),
+        React.createElement('line', { x1: 12, y1: 17, x2: 12.01, y2: 17 })
+      ),
+      FileText: ({ size = 16 }) => React.createElement('svg', { className: 'icon', width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+        React.createElement('path', { d: 'M14,2H6a2,2 0 0,0 -2,2V20a2,2 0 0,0 2,2H18a2,2 0 0,0 2,-2V8z' }),
+        React.createElement('polyline', { points: '14,2 14,8 20,8' }),
+        React.createElement('line', { x1: 16, y1: 13, x2: 8, y2: 13 }),
+        React.createElement('line', { x1: 16, y1: 17, x2: 8, y2: 17 }),
+        React.createElement('polyline', { points: '10,9 9,9 8,9' })
+      ),
+      X: ({ size = 20 }) => React.createElement('svg', { className: 'icon', width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+        React.createElement('line', { x1: 18, y1: 6, x2: 6, y2: 18 }),
+        React.createElement('line', { x1: 6, y1: 6, x2: 18, y2: 18 })
+      ),
+      Circle: ({ size = 18 }) => React.createElement('svg', { className: 'icon', width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+        React.createElement('circle', { cx: 12, cy: 12, r: 10 })
+      ),
+      CheckCircle2: ({ size = 18 }) => React.createElement('svg', { className: 'icon', width: size, height: size, viewBox: '0 0 24 24', fill: 'currentColor', stroke: 'currentColor', strokeWidth: 2 },
+        React.createElement('path', { d: 'm12,22a10,10 0 1,1 0,-20a10,10 0 0,1 0,20z', fill: '#22c55e' }),
+        React.createElement('path', { d: 'm9,12l2,2 4,-4', fill: 'none', stroke: 'white', strokeWidth: 2 })
+      ),
+      ListTodo: ({ size = 16 }) => React.createElement('svg', { className: 'icon', width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+        React.createElement('rect', { x: 3, y: 5, width: 6, height: 6, rx: 1 }),
+        React.createElement('path', { d: 'm8,10l-2,-2l-1.5,1.5' }),
+        React.createElement('path', { d: 'M11,17H21' }),
+        React.createElement('path', { d: 'M11,7H21' })
+      ),
+      ExternalLink: ({ size = 16 }) => React.createElement('svg', { className: 'icon', width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+        React.createElement('path', { d: 'M18,13v6a2,2 0 0,1 -2,2H5a2,2 0 0,1 -2,-2V8a2,2 0 0,1 2,-2h6' }),
+        React.createElement('polyline', { points: '15,3 21,3 21,9' }),
+        React.createElement('line', { x1: 10, y1: 14, x2: 21, y2: 3 })
+      )
+    };
+
+    const TreeApp = () => {
+      const [nodes, setNodes] = useState([]);
+      const [currentInput, setCurrentInput] = useState('');
+      const [currentIndentLevel, setCurrentIndentLevel] = useState(0);
+      const [showThemeMenu, setShowThemeMenu] = useState(false);
+      const [showSaveMenu, setShowSaveMenu] = useState(false);
+      const [showClearConfirm, setShowClearConfirm] = useState(false);
+      const [isUploading, setIsUploading] = useState(false);
+      const [selectedNodeId, setSelectedNodeId] = useState(null);
+      const [focusedNodeId, setFocusedNodeId] = useState(null);
+      const [focusNote, setFocusNote] = useState('');
+      const [showLinkConfirm, setShowLinkConfirm] = useState(false);
+      const [linkNodeId, setLinkNodeId] = useState(null);
+      const [isInputFocused, setIsInputFocused] = useState(false);
+      const [activeNodeId, setActiveNodeId] = useState(null);
+      const [navigationMode, setNavigationMode] = useState(false);
+      const [currentTheme, setCurrentTheme] = useState('matcha');
+      const inputRef = useRef(null);
+      const scrollAreaRef = useRef(null);
+      const fileInputRef = useRef(null);
+
+      const themes = {
+        matcha: {
+          name: 'Matcha',
+          background: '#E8F5E8',
+          nodeBackground: '#F0F8F0',
+          text: '#2D4A2D',
+          prompt: '#5A7A5A',
+          border: '#C5D6C5'
+        },
+        latte: {
+          name: 'Latte',
+          background: '#F5F0E8',
+          nodeBackground: '#F8F5F0',
+          text: '#4A3D2D',
+          prompt: '#7A6A5A',
+          border: '#D6CCC5'
+        },
+        ocean: {
+          name: 'Ocean',
+          background: '#E8F0F5',
+          nodeBackground: '#F0F5F8',
+          text: '#2D3D4A',
+          prompt: '#5A6A7A',
+          border: '#C5CCD6'
+        },
+        sunset: {
+          name: 'Sunset',
+          background: '#F5E8E8',
+          nodeBackground: '#F8F0F0',
+          text: '#4A2D2D',
+          prompt: '#7A5A5A',
+          border: '#D6C5C5'
+        },
+        midnight: {
+          name: 'Midnight',
+          background: '#0F0F23',
+          nodeBackground: '#1A1A2E',
+          text: '#E0E0E0',
+          prompt: '#8B8B8B',
+          border: '#2D2D44'
+        },
+        plum: {
+          name: 'Plum',
+          background: '#F3E8F5',
+          nodeBackground: '#F8F0FA',
+          text: '#4A2D4A',
+          prompt: '#7A5A7A',
+          border: '#D6C5D6'
+        },
+        chess: {
+          name: 'Chess',
+          background: '#F8F8F8',
+          nodeBackground: '#FFFFFF',
+          text: '#1A1A1A',
+          prompt: '#666666',
+          border: '#E0E0E0'
+        },
+        espresso: {
+          name: 'Espresso',
+          background: '#2C1810',
+          nodeBackground: '#3D241A',
+          text: '#E8D5C4',
+          prompt: '#B8956F',
+          border: '#5D3E2A'
+        },
+        forest: {
+          name: 'Forest',
+          background: '#1A2F1A',
+          nodeBackground: '#2A4A2A',
+          text: '#C8E6C8',
+          prompt: '#7A9A7A',
+          border: '#3A5A3A'
+        }
+      };
+
+      const theme = themes[currentTheme];
+
+      useEffect(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, [nodes]);
+
+      // Helper to safely use localStorage
+      const useLocalStorage = () => {
+        try {
+          return typeof localStorage !== 'undefined' && localStorage ? localStorage : null;
+        } catch {
+          return null;
+        }
+      };
+
+      // Load from localStorage on mount
+      useEffect(() => {
+        const storage = useLocalStorage();
+        if (!storage) return;
+        
+        const savedData = storage.getItem('tree-e-autosave');
+        if (savedData) {
+          try {
+            const data = JSON.parse(savedData);
+            if (data.nodes && data.nodes.length > 0) {
+              setNodes(data.nodes);
+              setCurrentTheme(data.currentTheme || 'matcha');
+              setCurrentIndentLevel(data.currentIndentLevel || 0);
+            }
+          } catch (error) {
+            console.error('Error loading autosave:', error);
+          }
+        }
+      }, []);
+
+      // Auto-save to localStorage whenever data changes
+      useEffect(() => {
+        if (isUploading) return;
+        
+        const storage = useLocalStorage();
+        if (!storage) return;
+        
+        const dataToSave = {
+          nodes,
+          currentTheme,
+          currentIndentLevel,
+          timestamp: new Date().toISOString()
+        };
+        storage.setItem('tree-e-autosave', JSON.stringify(dataToSave));
+      }, [nodes, currentTheme, currentIndentLevel, isUploading]);
+
+      const handleKeyPress = (e) => {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          if (e.shiftKey) {
+            setCurrentIndentLevel(prev => Math.max(0, prev - 1));
+          } else {
+            setCurrentIndentLevel(prev => prev + 1);
+          }
+          return;
+        }
+
+        if (e.key === 'Enter' && currentInput.trim()) {
+          const content = currentInput.trim();
+          
+          let insertIndex = nodes.length;
+          let newLevel = currentIndentLevel;
+          
+          const contextNodeId = activeNodeId || selectedNodeId;
+          if (contextNodeId) {
+            const contextNode = nodes.find(n => n.id === contextNodeId);
+            const contextIndex = nodes.findIndex(n => n.id === contextNodeId);
+            
+            if (contextNode && contextIndex !== -1) {
+              newLevel = contextNode.level + 1;
+              
+              let insertAfterIndex = contextIndex;
+              for (let i = contextIndex + 1; i < nodes.length; i++) {
+                if (nodes[i].level > contextNode.level) {
+                  insertAfterIndex = i;
+                } else {
+                  break;
+                }
+              }
+              insertIndex = insertAfterIndex + 1;
+            }
+          }
+          
+          const newNode = {
+            id: Date.now(),
+            content,
+            level: newLevel,
+            note: '',
+            isLinked: false,
+            isTask: false,
+            isCompleted: false,
+            isNew: true
+          };
+          
+          const newNodes = [...nodes];
+          newNodes.splice(insertIndex, 0, newNode);
+          setNodes(newNodes);
+          
+          setCurrentInput('');
+          setCurrentIndentLevel(newLevel);
+          
+          setTimeout(() => {
+            if (scrollAreaRef.current) {
+              scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+            }
+          }, 50);
+          
+          setTimeout(() => {
+            setNodes(prev => prev.map(node => 
+              node.id === newNode.id ? { ...node, isNew: false } : node
+            ));
+          }, 300);
+        }
+      };
+
+      const handleThemeChange = (themeName) => {
+        setCurrentTheme(themeName);
+        setShowThemeMenu(false);
+      };
+
+      const generateMarkdown = () => {
+        return nodes.map(node => {
+          const indent = '  '.repeat(node.level);
+          let content = `${indent}- ${node.content}`;
+          
+          if (node.note && node.note.trim()) {
+            const noteLines = node.note.trim().split('\n');
+            const indentedNote = noteLines.map(line => 
+              `${indent}  > ${line}`
+            ).join('\n');
+            content += '\n' + indentedNote;
+          }
+          
+          return content;
+        }).join('\n');
+      };
+
+      const downloadFile = (content, filename, mimeType) => {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      };
+
+      const handleDownloadMD = () => {
+        const markdown = generateMarkdown();
+        const generateUID = () => Math.random().toString(36).substr(2, 8);
+        const sanitizeForFilename = (text) => {
+          return text.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').substring(0, 30);
+        };
+        const firstLevelZeroNode = nodes.find(node => node.level === 0);
+        const listName = firstLevelZeroNode ? sanitizeForFilename(firstLevelZeroNode.content) : 'untitled';
+        const uid = generateUID();
+        const filename = `tree-e-${listName}-${uid}.md`;
+        downloadFile(markdown, filename, 'text/markdown');
+        setShowSaveMenu(false);
+      };
+
+      const handleClearConfirm = () => {
+        setNodes([]);
+        setCurrentIndentLevel(0);
+        const storage = useLocalStorage();
+        if (storage) {
+          storage.removeItem('tree-e-autosave');
+        }
+        setShowClearConfirm(false);
+      };
+
+      const handleNodeClick = (nodeId) => {
+        setSelectedNodeId(selectedNodeId === nodeId ? null : nodeId);
+      };
+
+      const handleNodeDelete = (nodeId) => {
+        setNodes(prev => prev.filter(node => node.id !== nodeId));
+        setSelectedNodeId(null);
+      };
+
+      const handleNodeFocus = (nodeId) => {
+        const node = nodes.find(n => n.id === nodeId);
+        setFocusedNodeId(nodeId);
+        setFocusNote(node?.note || '');
+        setSelectedNodeId(null);
+      };
+
+      const handleFocusClose = () => {
+        if (focusedNodeId) {
+          setNodes(prev => prev.map(node => 
+            node.id === focusedNodeId ? { ...node, note: focusNote } : node
+          ));
+        }
+        setFocusedNodeId(null);
+        setFocusNote('');
+      };
+
+      const handleToggleTask = (nodeId) => {
+        setNodes(prev => prev.map(node => 
+          node.id === nodeId ? { ...node, isTask: !node.isTask, isCompleted: false } : node
+        ));
+        setSelectedNodeId(null);
+      };
+
+      const handleToggleComplete = (nodeId) => {
+        setNodes(prev => prev.map(node => 
+          node.id === nodeId ? { ...node, isCompleted: !node.isCompleted } : node
+        ));
+      };
+
+      return React.createElement('div', {
+        className: "min-h-screen w-full transition-colors duration-300 relative",
+        style: { backgroundColor: theme.background }
+      }, 
+        // Controls
+        React.createElement('div', {
+          className: "absolute top-4 left-4 z-10 flex space-x-2"
+        },
+          // Clear button
+          React.createElement('button', {
+            onClick: () => nodes.length > 0 && setShowClearConfirm(true),
+            className: "p-2 rounded-lg transition-colors duration-200 hover:opacity-80",
+            style: { 
+              backgroundColor: theme.nodeBackground,
+              color: theme.text,
+              border: `1px solid ${theme.border}`,
+              opacity: nodes.length === 0 ? 0.4 : 1
+            },
+            title: "Clear All"
+          }, React.createElement(Icons.Trash2)),
+          
+          // Theme selector
+          React.createElement('div', { className: "relative" },
+            React.createElement('button', {
+              onClick: () => setShowThemeMenu(!showThemeMenu),
+              className: "p-2 rounded-lg transition-colors duration-200 hover:opacity-80",
+              style: { 
+                backgroundColor: theme.nodeBackground,
+                color: theme.text,
+                border: `1px solid ${theme.border}`
+              }
+            }, React.createElement(Icons.Palette)),
+            
+            showThemeMenu && React.createElement('div', {
+              className: "absolute left-0 mt-2 py-2 rounded-lg shadow-lg border min-w-32",
+              style: { 
+                backgroundColor: theme.nodeBackground,
+                borderColor: theme.border
+              }
+            }, Object.entries(themes).map(([key, themeOption]) => 
+              React.createElement('button', {
+                key: key,
+                onClick: () => handleThemeChange(key),
+                className: "w-full px-4 py-2 text-left hover:opacity-80 transition-opacity duration-150",
+                style: { 
+                  color: theme.text,
+                  backgroundColor: currentTheme === key ? theme.border : 'transparent'
+                }
+              }, themeOption.name)
+            ))
+          )
+        ),
+
+        // Clear confirmation modal
+        showClearConfirm && React.createElement('div', {
+          className: "fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+        },
+          React.createElement('div', {
+            className: "rounded-xl p-6 max-w-sm mx-4 shadow-xl",
+            style: { 
+              backgroundColor: theme.nodeBackground,
+              color: theme.text,
+              border: `2px solid ${theme.border}`
+            }
+          },
+            React.createElement('div', { className: "text-center mb-6" },
+              React.createElement('div', {
+                className: "w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center",
+                style: { 
+                  backgroundColor: theme.border,
+                  boxShadow: `0 6px 20px rgba(0, 0, 0, 0.15)`
+                }
+              }, React.createElement(Icons.AlertTriangle)),
+              React.createElement('h3', { className: "text-lg font-semibold mb-2" }, "Clear your tree?"),
+              React.createElement('p', { className: "text-sm opacity-75 leading-relaxed" }, 
+                "This will remove all your thoughts.", React.createElement('br'), 
+                React.createElement('em', null, "They cannot be recovered once cleared.")
+              )
+            ),
+            React.createElement('div', { className: "flex space-x-3" },
+              React.createElement('button', {
+                onClick: () => setShowClearConfirm(false),
+                className: "flex-1 px-4 py-2 rounded-lg border transition-all duration-200 hover:opacity-80",
+                style: { 
+                  backgroundColor: 'transparent',
+                  color: theme.text,
+                  borderColor: theme.border
+                }
+              }, "Keep Tree"),
+              React.createElement('button', {
+                onClick: handleClearConfirm,
+                className: "flex-1 px-4 py-2 rounded-lg transition-all duration-200 hover:opacity-90",
+                style: { 
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  border: 'none'
+                }
+              }, "Clear Tree")
+            )
+          )
+        ),
+
+        // Focus overlay
+        focusedNodeId && React.createElement('div', {
+          className: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        },
+          React.createElement('div', {
+            className: "w-full max-w-2xl h-96 rounded-xl shadow-2xl flex flex-col",
+            style: { 
+              backgroundColor: theme.nodeBackground,
+              border: `2px solid ${theme.border}`
+            }
+          },
+            React.createElement('div', {
+              className: "flex items-center justify-between p-4 border-b",
+              style: { borderColor: theme.border }
+            },
+              React.createElement('div', { className: "flex items-center space-x-3" },
+                React.createElement(Icons.FileText),
+                React.createElement('h3', { 
+                  className: "font-semibold", 
+                  style: { color: theme.text } 
+                }, `Focus: ${nodes.find(n => n.id === focusedNodeId)?.content}`)
+              ),
+              React.createElement('button', {
+                onClick: handleFocusClose,
+                className: "p-1 rounded-lg hover:opacity-80 transition-opacity",
+                style: { color: theme.text }
+              }, React.createElement(Icons.X))
+            ),
+            React.createElement('div', { className: "flex-1 p-4" },
+              React.createElement('textarea', {
+                value: focusNote,
+                onChange: (e) => setFocusNote(e.target.value),
+                placeholder: "Write your detailed notes here...",
+                className: "w-full h-full resize-none border-none outline-none bg-transparent",
+                style: { 
+                  color: theme.text,
+                  fontFamily: 'system-ui, -apple-system, sans-serif'
+                },
+                autoFocus: true
+              })
+            ),
+            React.createElement('div', {
+              className: "p-4 border-t flex justify-end space-x-3",
+              style: { borderColor: theme.border }
+            },
+              React.createElement('button', {
+                onClick: handleFocusClose,
+                className: "px-4 py-2 rounded-lg transition-colors duration-200",
+                style: { 
+                  backgroundColor: theme.border,
+                  color: theme.text
+                }
+              }, "Save & Close")
+            )
+          )
+        ),
+
+        // Main content
+        React.createElement('div', { className: "flex flex-col h-screen" },
+          // Scrollable nodes area
+          React.createElement('div', {
+            ref: scrollAreaRef,
+            className: "flex-1 overflow-y-auto p-8 pt-20 pb-4 min-h-0",
+            onClick: (e) => {
+              if (e.target === e.currentTarget || e.target.closest('.node-container') === null) {
+                setSelectedNodeId(null);
+                setActiveNodeId(null);
+                setNavigationMode(false);
+              }
+            }
+          },
+            React.createElement('div', { className: "max-w-2xl mx-auto min-h-full flex flex-col justify-end" },
+              React.createElement('div', { className: "space-y-2 flex-shrink-0" },
+                nodes.map((node) =>
+                  React.createElement('div', {
+                    key: node.id,
+                    className: `transform transition-all duration-300 ease-out node-container ${
+                      node.isNew ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
+                    }`,
+                    style: { 
+                      marginLeft: `${node.level * 24}px`
+                    }
+                  },
+                    React.createElement('div', { className: "relative" },
+                      React.createElement('div', {
+                        className: `px-4 py-3 rounded-lg border shadow-sm cursor-pointer transition-all duration-200 flex items-center justify-between touch-pan-y ${
+                          activeNodeId === node.id ? 'ring-2' : ''
+                        }`,
+                        style: { 
+                          backgroundColor: selectedNodeId === node.id ? theme.border : 
+                                          activeNodeId === node.id ? `${theme.border}50` : theme.nodeBackground,
+                          color: theme.text,
+                          borderColor: selectedNodeId === node.id ? theme.text : theme.border,
+                          borderWidth: selectedNodeId === node.id ? '2px' : '1px',
+                          ringColor: activeNodeId === node.id ? theme.text : 'transparent',
+                          opacity: node.isTask && node.isCompleted ? 0.6 : 1
+                        },
+                        onClick: () => handleNodeClick(node.id)
+                      },
+                        React.createElement('div', { className: "flex items-center space-x-3 flex-1" },
+                          node.isTask && React.createElement('button', {
+                            onClick: (e) => {
+                              e.stopPropagation();
+                              handleToggleComplete(node.id);
+                            },
+                            className: "flex-shrink-0 transition-colors duration-200",
+                            style: { color: theme.text }
+                          },
+                            node.isCompleted ? 
+                              React.createElement(Icons.CheckCircle2) :
+                              React.createElement(Icons.Circle)
+                          ),
+                          React.createElement('span', {
+                            className: `${node.isTask && node.isCompleted ? 'line-through' : ''}`,
+                            style: { 
+                              opacity: node.isTask && node.isCompleted ? 0.7 : 1 
+                            }
+                          }, node.content)
+                        ),
+                        React.createElement('div', { className: "flex items-center space-x-1" },
+                          node.isTask && React.createElement(Icons.ListTodo),
+                          node.note && node.note.trim() && React.createElement(Icons.FileText),
+                          node.isLinked && React.createElement(Icons.ExternalLink)
+                        )
+                      ),
+                      
+                      // Node menu
+                      selectedNodeId === node.id && React.createElement('div', {
+                        className: "absolute right-2 top-1/2 transform -translate-y-1/2 flex space-x-1 z-10",
+                        onClick: (e) => e.stopPropagation()
+                      },
+                        React.createElement('button', {
+                          onClick: () => handleToggleTask(node.id),
+                          className: "p-1 rounded transition-all duration-150 hover:opacity-80 hover:scale-105",
+                          style: { 
+                            backgroundColor: '#10b981',
+                            color: 'white',
+                            boxShadow: `0 2px 4px rgba(0, 0, 0, 0.15)`
+                          },
+                          title: node.isTask ? "Convert to Note" : "Convert to Task"
+                        }, React.createElement(Icons.ListTodo)),
+                        React.createElement('button', {
+                          onClick: () => handleNodeFocus(node.id),
+                          className: "p-1 rounded transition-all duration-150 hover:opacity-80 hover:scale-105",
+                          style: { 
+                            backgroundColor: '#3b82f6',
+                            color: 'white',
+                            boxShadow: `0 2px 4px rgba(0, 0, 0, 0.15)`
+                          },
+                          title: "Focus / Add Note"
+                        }, React.createElement(Icons.FileText)),
+                        React.createElement('button', {
+                          onClick: () => handleNodeDelete(node.id),
+                          className: "p-1 rounded transition-all duration-150 hover:opacity-80 hover:scale-105",
+                          style: { 
+                            backgroundColor: '#ef4444',
+                            color: 'white',
+                            boxShadow: `0 2px 4px rgba(0, 0, 0, 0.15)`
+                          },
+                          title: "Delete"
+                        }, React.createElement(Icons.Trash2))
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          ),
+
+          // Fixed input area
+          React.createElement('div', {
+            className: "flex-shrink-0 p-8 pt-4 bg-inherit",
+            style: { backgroundColor: theme.background }
+          },
+            React.createElement('div', { className: "max-w-2xl mx-auto" },
+              React.createElement('div', { className: "flex items-center space-x-2" },
+                React.createElement('span', {
+                  className: "text-2xl font-mono",
+                  style: { color: theme.prompt }
+                }, ">"),
+                currentIndentLevel > 0 && React.createElement('span', {
+                  className: "text-sm font-mono opacity-60",
+                  style: { color: theme.prompt }
+                }, Array.from({ length: currentIndentLevel }, (_, i) => 
+                  React.createElement('span', { key: i }, "  │")
+                )),
+                React.createElement('input', {
+                  ref: inputRef,
+                  type: "text",
+                  value: currentInput,
+                  onChange: (e) => setCurrentInput(e.target.value),
+                  onKeyDown: handleKeyPress,
+                  onFocus: () => setIsInputFocused(true),
+                  onBlur: () => setTimeout(() => setIsInputFocused(false), 300),
+                  placeholder: nodes.length === 0 ? "Plant your Tree-e..." : "Branch your Tree-e...",
+                  className: "flex-1 bg-transparent border-none outline-none text-lg font-mono",
+                  style: { color: theme.text }
+                })
+              ),
+              
+              // Instructions
+              nodes.length === 0 && React.createElement('div', {
+                className: "mt-8 text-center text-sm opacity-60 font-mono",
+                style: { color: theme.text }
+              },
+                React.createElement('span', { className: "hidden md:inline" }, "Press Tab to indent • Shift+Tab to outdent • Enter to add node"),
+                React.createElement('span', { className: "md:hidden" }, "Long press to select • Enter to add node")
+              )
+            )
+          )
+        )
+      );
+    };
+
+    // Render the app
+    const rootElement = document.getElementById('root');
+    if (rootElement) {
+      ReactDOM.render(React.createElement(TreeApp), rootElement);
+    } else {
+      console.error('Root element not found');
+    }
+</script>
+
+</head>
+</body>
