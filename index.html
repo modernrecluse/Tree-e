@@ -776,7 +776,7 @@
                                 }}
                                 style={{ color: node.isCompleted ? '#22c55e' : theme.text + '99' }}
                             >
-                                {node.isCompleted ? '●' : '○'}
+                                {node.isCompleted ? '☑' : '☐'}
                             </div>
                         )}
                         
@@ -785,8 +785,8 @@
                         </div>
                         
                         <div className="node-icons" style={{ color: theme.text + '99' }}>
-                            {node.isTask && <span>◦</span>}
-                            {node.note && node.note.trim() && <span>⋮</span>}
+                            {node.isTask && <span>☐</span>}
+                            {node.note && node.note.trim() && <span>✎</span>}
                             {node.linkedNodeId && (
                                 <span 
                                     onClick={(e) => {
@@ -795,7 +795,7 @@
                                     }}
                                     style={{ color: '#3b82f6', cursor: 'pointer' }}
                                 >
-                                    →
+                                    ⇗
                                 </span>
                             )}
                         </div>
@@ -804,22 +804,22 @@
                     {isSelected && (
                         <div className="node-actions">
                             <button className="action-btn task" onClick={onToggleTask}>
-                                ◦ <span>{node.isTask ? 'Note' : 'Task'}</span>
+                                ☐ <span>{node.isTask ? 'Note' : 'Task'}</span>
                             </button>
                             <button className="action-btn focus" onClick={onFocus}>
-                                ⋮ <span>Notes</span>
+                                ✎ <span>Notes</span>
                             </button>
                             {node.linkedNodeId ? (
                                 <button className="action-btn unlink" onClick={onUnlink}>
-                                    ⧸ <span>Unlink</span>
+                                    ⛓ <span>Unlink</span>
                                 </button>
                             ) : (
                                 <button className="action-btn link" onClick={onLink}>
-                                    ∿ <span>Link</span>
+                                    ⛓ <span>Link</span>
                                 </button>
                             )}
                             <button className="action-btn delete" onClick={onDelete}>
-                                × <span>Delete</span>
+                                ✕ <span>Delete</span>
                             </button>
                         </div>
                     )}
@@ -845,7 +845,7 @@
                             onClick={onClose}
                             style={{ color: theme.text }}
                         >
-                            ×
+                            ✕
                         </button>
                     </div>
                     <div className="modal-body">
@@ -935,7 +935,7 @@
                                     </span>
                                     <span>{node.content}</span>
                                 </div>
-                                <span className="link-chevron">→</span>
+                                <span className="link-chevron">⇨</span>
                             </button>
                         ))}
                     </div>
@@ -1013,7 +1013,7 @@
                         color: theme.text
                     }}
                 >
-                    ◐
+                    ⚙
                 </button>
                 {isOpen && (
                     <div className="dropdown-content">
@@ -1027,7 +1027,7 @@
                                 }}
                             >
                                 <span>{themeOption.name}</span>
-                                {currentTheme === key && <span>•</span>}
+                                {currentTheme === key && <span>★</span>}
                             </button>
                         ))}
                     </div>
@@ -1353,7 +1353,7 @@
                                 color: theme.text
                             }}
                         >
-                            ↗
+                            ✓
                         </button>
                         
                         <button
@@ -1368,7 +1368,7 @@
                                 color: theme.text
                             }}
                         >
-                            ?
+                            ⓘ
                         </button>
                         
                         <button
@@ -1384,7 +1384,7 @@
                                 color: theme.text
                             }}
                         >
-                            ⤴
+                            ⬆
                         </button>
                         
                         <button
@@ -1402,7 +1402,7 @@
                                 color: theme.text
                             }}
                         >
-                            ×
+                            ⌫
                         </button>
                         
                         <ThemeDropdown
@@ -1547,7 +1547,7 @@
                                 color: theme.text
                             }}
                         >
-                            → Next node will be added as child of: "{selectedNode.content}" (Level {selectedNode.level + 1})
+                            ⤷ Next node will be added as child of: "{selectedNode.content}" (Level {selectedNode.level + 1})
                         </div>
                     )}
                     
@@ -1681,6 +1681,7 @@
             });
     }
 </script>
+
 
 </body>
 </html>
