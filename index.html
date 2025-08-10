@@ -1009,7 +1009,7 @@
                                 {node.isTask && <span>□</span>}
                                 {node.note && node.note.trim() && <span>◊</span>}
                                 {/* Only show the branch link icon if we're in the PARENT tree, not the branched tree itself */}
-                                {isBranchedOut && currentTreeIndex === allTrees.findIndex(tree => tree.id === allTrees.find(t => t.parentNodeId === node.id)?.parentTreeId) && (
+                                {isBranchedOut && !allTrees[currentTreeIndex].parentTreeId && (
                                     <span 
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -1536,8 +1536,12 @@
         };
 
         const jumpToLinkedNode = (nodeId) => {
-            // Check if this node has a branched tree
-            focusLinkedTree(nodeId);
+            // Only allow navigation if we're in a parent tree (not in a branched tree)
+            const currentTree = trees[activeTreeIndex];
+            if (currentTree && !currentTree.parentTreeId) {
+                // Check if this node has a branched tree
+                focusLinkedTree(nodeId);
+            }
         };
 
         const editNode = (nodeId) => {
