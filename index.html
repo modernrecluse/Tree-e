@@ -39,7 +39,7 @@
     
     .app {
         height: 100vh;
-        height: 100dvh; /* Dynamic viewport height for mobile */
+        height: calc(var(--vh, 1vh) * 100);
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -565,6 +565,11 @@
         .node-text {
             max-width: calc(100vw - 6rem);
         }
+        
+        /* Better mobile keyboard handling */
+        .app {
+            height: calc(var(--vh, 1vh) * 100);
+        }
     }
     
     @media (max-width: 360px) {
@@ -1036,6 +1041,57 @@
         );
     };
 
+    const MarkdownView = ({ markdown, theme, onDownload }) => {
+        return (
+            <div style={{ 
+                display: 'flex',
+                flexDirection: 'column',
+                flex: 1,
+                overflow: 'hidden'
+            }}>
+                {/* Download button */}
+                <div style={{
+                    padding: 'clamp(0.75rem, 3vw, 1rem)',
+                    borderBottom: `1px solid ${theme.border}`,
+                    display: 'flex',
+                    justifyContent: 'flex-end'
+                }}>
+                    <button
+                        onClick={onDownload}
+                        style={{
+                            background: theme.text,
+                            color: theme.background,
+                            border: 'none',
+                            padding: 'clamp(0.5rem, 2vw, 0.5rem) clamp(0.75rem, 3vw, 1rem)',
+                            borderRadius: '6px',
+                            fontSize: 'clamp(0.75rem, 3vw, 0.875rem)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}
+                    >
+                        ⬇ Download MD
+                    </button>
+                </div>
+                
+                {/* Markdown content */}
+                <div style={{ 
+                    flex: 1, 
+                    overflow: 'auto', 
+                    padding: 'clamp(0.75rem, 3vw, 1rem)',
+                    fontFamily: 'JetBrains Mono, monospace',
+                    whiteSpace: 'pre-wrap',
+                    lineHeight: 1.6,
+                    fontSize: 'clamp(0.75rem, 3vw, 0.875rem)',
+                    color: theme.text
+                }}>
+                    {markdown || 'No content to display'}
+                </div>
+            </div>
+        );
+    };
+
     // Main App Component
     const TreeApp = () => {
         // State
@@ -1050,6 +1106,7 @@
         const [linkingFromNodeId, setLinkingFromNodeId] = useState(null);
         const [showThemeDropdown, setShowThemeDropdown] = useState(false);
         const [isInputFocused, setIsInputFocused] = useState(false);
+        const [showMarkdownView, setShowMarkdownView] = useState(false);
         const [showClearConfirm, setShowClearConfirm] = useState(false);
 
         const inputRef = useRef(null);
@@ -1267,6 +1324,15 @@
             }).join('\n');
         };
 
+        const toggleMarkdownView = () => {
+            setShowMarkdownView(!showMarkdownView);
+            // Reset selected node when switching views
+            if (!showMarkdownView) {
+                setSelectedNodeId(null);
+                setIsInputFocused(false);
+            }
+        };
+
         const exportMarkdown = () => {
             const markdown = generateMarkdown();
             
@@ -1375,16 +1441,16 @@
                             className="control-btn"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                exportMarkdown();
+                                toggleMarkdownView();
                             }}
                             disabled={nodes.length === 0}
                             style={{
-                                backgroundColor: getColorForLevel(theme, 0),
+                                backgroundColor: showMarkdownView ? theme.text : getColorForLevel(theme, 0),
                                 borderColor: theme.border,
-                                color: theme.text
+                                color: showMarkdownView ? theme.background : theme.text
                             }}
                         >
-                            ⬆
+                            {showMarkdownView ? '◂' : '▸'}
                         </button>
                         
                         <button
@@ -1418,145 +1484,155 @@
                     </div>
                 </div>
 
-                {/* Main Content - Scrollable Node List */}
-                <div className="main-content">
-                    <div className="nodes-container" ref={nodesContainerRef}>
-                        {nodes.map(node => (
-                            <div key={node.id} data-node-id={node.id}>
-                                <NodeComponent
-                                    node={node}
-                                    theme={theme}
-                                    isSelected={selectedNodeId === node.id}
-                                    onTap={(e) => {
-                                        e.stopPropagation();
-                                        
-                                        if (selectedNodeId === node.id) {
-                                            setSelectedNodeId(null);
-                                            // Reset to the last node's level when deselecting
-                                            if (nodes.length > 0) {
-                                                setCurrentIndentLevel(nodes[nodes.length - 1].level);
-                                            } else {
-                                                setCurrentIndentLevel(0);
-                                            }
-                                        } else {
-                                            setSelectedNodeId(node.id);
-                                            setCurrentIndentLevel(node.level + 1);
+                {/* Main Content - Conditional Tree/Markdown View */}
+                {showMarkdownView ? (
+                    <MarkdownView 
+                        markdown={generateMarkdown()} 
+                        theme={theme} 
+                        onDownload={exportMarkdown}
+                    />
+                ) : (
+                    <div className="main-content">
+                        <div className="nodes-container" ref={nodesContainerRef}>
+                            {nodes.map(node => (
+                                <div key={node.id} data-node-id={node.id}>
+                                    <NodeComponent
+                                        node={node}
+                                        theme={theme}
+                                        isSelected={selectedNodeId === node.id}
+                                        onTap={(e) => {
+                                            e.stopPropagation();
                                             
-                                            // Scroll to selected node
-                                            setTimeout(() => {
-                                                const element = document.querySelector(`[data-node-id="${node.id}"]`);
-                                                if (element) {
-                                                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                            if (selectedNodeId === node.id) {
+                                                setSelectedNodeId(null);
+                                                // Reset to the last node's level when deselecting
+                                                if (nodes.length > 0) {
+                                                    setCurrentIndentLevel(nodes[nodes.length - 1].level);
+                                                } else {
+                                                    setCurrentIndentLevel(0);
                                                 }
-                                            }, 100);
-                                        }
-                                    }}
-                                    onIndent={() => indentNode(node.id)}
-                                    onOutdent={() => outdentNode(node.id)}
-                                    onDelete={() => deleteNode(node.id)}
-                                    onFocus={() => focusNode(node.id)}
-                                    onToggleTask={() => toggleTask(node.id)}
-                                    onToggleComplete={() => toggleComplete(node.id)}
-                                    onLink={() => startLinking(node.id)}
-                                    onUnlink={() => unlinkNode(node.id)}
-                                    onJumpToLink={() => jumpToLinkedNode(node.id)}
-                                />
-                            </div>
-                        ))}
+                                            } else {
+                                                setSelectedNodeId(node.id);
+                                                setCurrentIndentLevel(node.level + 1);
+                                                
+                                                // Scroll to selected node
+                                                setTimeout(() => {
+                                                    const element = document.querySelector(`[data-node-id="${node.id}"]`);
+                                                    if (element) {
+                                                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                    }
+                                                }, 100);
+                                            }
+                                        }}
+                                        onIndent={() => indentNode(node.id)}
+                                        onOutdent={() => outdentNode(node.id)}
+                                        onDelete={() => deleteNode(node.id)}
+                                        onFocus={() => focusNode(node.id)}
+                                        onToggleTask={() => toggleTask(node.id)}
+                                        onToggleComplete={() => toggleComplete(node.id)}
+                                        onLink={() => startLinking(node.id)}
+                                        onUnlink={() => unlinkNode(node.id)}
+                                        onJumpToLink={() => jumpToLinkedNode(node.id)}
+                                    />
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
-                {/* Input Area - Fixed at Bottom */}
-                <div className="input-area" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
-                    {isInputFocused && (
-                        <div className="indent-controls">
-                            <button
-                                className="indent-btn"
-                                onClick={() => setCurrentIndentLevel(prev => Math.max(0, prev - 1))}
-                                disabled={currentIndentLevel === 0}
-                                style={{
-                                    backgroundColor: getColorForLevel(theme, 0),
-                                    borderColor: theme.border,
-                                    color: theme.text
-                                }}
-                            >
-                                ← Outdent
-                            </button>
-                            <button
-                                className="indent-btn"
-                                onClick={() => setCurrentIndentLevel(prev => prev + 1)}
-                                style={{
-                                    backgroundColor: getColorForLevel(theme, 0),
-                                    borderColor: theme.border,
-                                    color: theme.text
-                                }}
-                            >
-                                Indent →
-                            </button>
-                        </div>
-                    )}
-                    
-                    <div 
-                        className="input-container"
-                        style={{
-                            borderColor: theme.border,
-                            backgroundColor: theme.background
-                        }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setIsInputFocused(true);
-                            inputRef.current?.focus();
-                        }}
-                        {...inputSwipeHandlers}
-                    >
-                        <div className="input-prompt" style={{ color: theme.prompt }}>
-                            >
-                        </div>
-                        
-                        {currentIndentLevel > 0 && (
-                            <div className="indent-indicator" style={{ color: theme.prompt }}>
-                                {'  │'.repeat(currentIndentLevel)}
+                {/* Input Area - Fixed at Bottom (only show in tree view) */}
+                {!showMarkdownView && (
+                    <div className="input-area" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
+                        {isInputFocused && (
+                            <div className="indent-controls">
+                                <button
+                                    className="indent-btn"
+                                    onClick={() => setCurrentIndentLevel(prev => Math.max(0, prev - 1))}
+                                    disabled={currentIndentLevel === 0}
+                                    style={{
+                                        backgroundColor: getColorForLevel(theme, 0),
+                                        borderColor: theme.border,
+                                        color: theme.text
+                                    }}
+                                >
+                                    ← Outdent
+                                </button>
+                                <button
+                                    className="indent-btn"
+                                    onClick={() => setCurrentIndentLevel(prev => prev + 1)}
+                                    style={{
+                                        backgroundColor: getColorForLevel(theme, 0),
+                                        borderColor: theme.border,
+                                        color: theme.text
+                                    }}
+                                >
+                                    Indent →
+                                </button>
                             </div>
                         )}
                         
-                        <input
-                            ref={inputRef}
-                            className="main-input"
-                            type="text"
-                            value={currentInput}
-                            onChange={(e) => setCurrentInput(e.target.value)}
-                            onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                    addNode();
-                                }
-                            }}
-                            onFocus={() => {
-                                setIsInputFocused(true);
-                            }}
-                            placeholder="Start your Tree-e..."
-                            style={{ color: theme.text }}
-                        />
-                    </div>
-                    
-                    {selectedNode && (
                         <div 
-                            className="context-indicator"
+                            className="input-container"
                             style={{
-                                backgroundColor: getColorForLevel(theme, 0),
                                 borderColor: theme.border,
-                                color: theme.text
+                                backgroundColor: theme.background
                             }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsInputFocused(true);
+                                inputRef.current?.focus();
+                            }}
+                            {...inputSwipeHandlers}
                         >
-                            ⤷ Next node will be added as child of: "{selectedNode.content}" (Level {selectedNode.level + 1})
+                            <div className="input-prompt" style={{ color: theme.prompt }}>
+                                >
+                            </div>
+                            
+                            {currentIndentLevel > 0 && (
+                                <div className="indent-indicator" style={{ color: theme.prompt }}>
+                                    {'  │'.repeat(currentIndentLevel)}
+                                </div>
+                            )}
+                            
+                            <input
+                                ref={inputRef}
+                                className="main-input"
+                                type="text"
+                                value={currentInput}
+                                onChange={(e) => setCurrentInput(e.target.value)}
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                        addNode();
+                                    }
+                                }}
+                                onFocus={() => {
+                                    setIsInputFocused(true);
+                                }}
+                                placeholder="Start your Tree-e..."
+                                style={{ color: theme.text }}
+                            />
                         </div>
-                    )}
-                    
-                    {nodes.length === 0 && (
-                        <div className="instructions" style={{ color: theme.text }}>
-                            Swipe right to indent • Swipe left to outdent • Swipe on input box to adjust level • Return to add node • Link to connect thoughts
-                        </div>
-                    )}
-                </div>
+                        
+                        {selectedNode && (
+                            <div 
+                                className="context-indicator"
+                                style={{
+                                    backgroundColor: getColorForLevel(theme, 0),
+                                    borderColor: theme.border,
+                                    color: theme.text
+                                }}
+                            >
+                                ⤷ Next node will be added as child of: "{selectedNode.content}" (Level {selectedNode.level + 1})
+                            </div>
+                        )}
+                        
+                        {nodes.length === 0 && (
+                            <div className="instructions" style={{ color: theme.text }}>
+                                Swipe right to indent • Swipe left to outdent • Swipe on input box to adjust level • Return to add node • Link to connect thoughts
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Modals */}
                 <AboutView
