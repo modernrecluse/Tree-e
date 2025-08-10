@@ -1,0 +1,13 @@
+# Exclude original web app files
+index.html
+README.md
+
+# Swift build artifacts  
+.build/
+*.xcodeproj/
+*.xcworkspace/
+.DS_Store
+
+# Temporary files
+*.tmp
+*~
