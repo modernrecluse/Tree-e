@@ -112,7 +112,7 @@
     .nodes-container {
         display: flex;
         flex-direction: column;
-        gap: clamp(0.125rem, 30vw, 0.145rem);
+        gap: clamp(0.125rem, 3vw, 0.145rem);
         min-height: min-content;
         width: 100%;
         max-width: none;
@@ -822,7 +822,7 @@
     };
 
     // Components
-    const NodeComponent = ({ node, theme, isSelected, onTap, onIndent, onOutdent, onDelete, onFocus, onToggleTask, onToggleComplete, onLink, onUnlink, onJumpToLink }) => {
+    const NodeComponent = ({ node, theme, isSelected, backlinks = [], onTap, onIndent, onOutdent, onDelete, onFocus, onToggleTask, onToggleComplete, onLink, onUnlink, onJumpToLink }) => {
         const swipeHandlers = useTouchHandler(onOutdent, onIndent);
 
         return (
@@ -871,8 +871,17 @@
                                         onJumpToLink();
                                     }}
                                     style={{ color: '#3b82f6', cursor: 'pointer' }}
+                                    title="Jumps to linked node"
                                 >
                                     ↗
+                                </span>
+                            )}
+                            {backlinks.length > 0 && (
+                                <span 
+                                    style={{ color: '#8b5cf6', cursor: 'pointer' }}
+                                    title={`${backlinks.length} node${backlinks.length > 1 ? 's' : ''} link${backlinks.length > 1 ? '' : 's'} to this`}
+                                >
+                                    ↙
                                 </span>
                             )}
                         </div>
@@ -1078,6 +1087,44 @@
         );
     };
 
+    const FilterDropdown = ({ currentFilter, onFilterChange, isOpen, onToggle, theme, filterOptions }) => {
+        return (
+            <div className="dropdown">
+                <button 
+                    className="control-btn"
+                    onClick={onToggle}
+                    style={{
+                        backgroundColor: currentFilter !== 'all' ? theme.text : getColorForLevel(theme, 0),
+                        borderColor: theme.border,
+                        color: currentFilter !== 'all' ? theme.background : theme.text
+                    }}
+                >
+                    ◈
+                </button>
+                {isOpen && (
+                    <div className="dropdown-content">
+                        {filterOptions.map((option) => (
+                            <button
+                                key={option.key}
+                                className="dropdown-item"
+                                onClick={() => {
+                                    onFilterChange(option.key);
+                                    onToggle();
+                                }}
+                            >
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>{option.icon}</span>
+                                    <span>{option.label}</span>
+                                </span>
+                                {currentFilter === option.key && <span>●</span>}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     const ThemeDropdown = ({ currentTheme, onThemeChange, isOpen, onToggle, theme }) => {
         return (
             <div className="dropdown">
@@ -1180,6 +1227,8 @@
         const [isInputFocused, setIsInputFocused] = useState(false);
         const [showMarkdownView, setShowMarkdownView] = useState(false);
         const [showClearConfirm, setShowClearConfirm] = useState(false);
+        const [currentFilter, setCurrentFilter] = useState('all');
+        const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
         const inputRef = useRef(null);
         const nodesContainerRef = useRef(null);
@@ -1374,8 +1423,9 @@
             }
         };
 
-        const generateMarkdown = () => {
-            return nodes.map(node => {
+        const generateMarkdown = (useFilteredNodes = false) => {
+            const nodesToUse = useFilteredNodes ? getFilteredNodes() : nodes;
+            return nodesToUse.map(node => {
                 const indent = '  '.repeat(node.level);
                 let content = `${indent}- ${node.content}`;
                 
@@ -1403,17 +1453,20 @@
                 setSelectedNodeId(null);
                 setIsInputFocused(false);
             }
+            // Note: We keep the filter active when switching to markdown view
+            // so users can see filtered markdown output
         };
 
-        const exportMarkdown = () => {
-            const markdown = generateMarkdown();
+        const exportMarkdown = (useFilteredNodes = false) => {
+            const markdown = generateMarkdown(useFilteredNodes);
             
             // Create a blob and download
             const blob = new Blob([markdown], { type: 'text/markdown' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'tree-e-export.md';
+            const filterSuffix = useFilteredNodes && currentFilter !== 'all' ? `-${currentFilter}` : '';
+            a.download = `tree-e-export${filterSuffix}.md`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1441,6 +1494,31 @@
             }
         };
 
+        // Filter functions
+        const getBacklinksForNode = (nodeId) => {
+            return nodes.filter(node => node.linkedNodeId === nodeId);
+        };
+
+        const getFilteredNodes = () => {
+            switch (currentFilter) {
+                case 'tasks':
+                    return nodes.filter(node => node.isTask);
+                case 'notes':
+                    return nodes.filter(node => node.note && node.note.trim());
+                case 'linked':
+                    return nodes.filter(node => node.linkedNodeId || getBacklinksForNode(node.id).length > 0);
+                default:
+                    return nodes;
+            }
+        };
+
+        const filterOptions = [
+            { key: 'all', label: 'All Nodes', icon: '◎' },
+            { key: 'tasks', label: 'Tasks', icon: '□' },
+            { key: 'notes', label: 'With Notes', icon: '◊' },
+            { key: 'linked', label: 'Linked', icon: '○—○' }
+        ];
+
         const selectedNode = selectedNodeId ? nodes.find(node => node.id === selectedNodeId) : null;
 
         // Handle clicking outside to deselect
@@ -1461,6 +1539,7 @@
                 }
                 setIsInputFocused(false);
                 setShowThemeDropdown(false);
+                setShowFilterDropdown(false);
             }
         };
 
@@ -1475,24 +1554,37 @@
             >
                 {/* Header */}
                 <div className="header" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
-                    <h1 style={{ color: theme.text }}>Tree-e</h1>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <h1 style={{ color: theme.text }}>Tree-e</h1>
+                        {currentFilter !== 'all' && (
+                            <span style={{ 
+                                fontSize: 'clamp(0.625rem, 2.5vw, 0.75rem)', 
+                                color: theme.text + '99',
+                                background: theme.border,
+                                padding: '0.125rem 0.375rem',
+                                borderRadius: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.25rem'
+                            }}>
+                                {filterOptions.find(f => f.key === currentFilter)?.icon}
+                                {filterOptions.find(f => f.key === currentFilter)?.label}
+                            </span>
+                        )}
+                    </div>
                     
                     <div className="header-controls">
-                        <button
-                            className="control-btn save-btn"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                manualSave();
+                        <FilterDropdown
+                            currentFilter={currentFilter}
+                            onFilterChange={setCurrentFilter}
+                            isOpen={showFilterDropdown}
+                            onToggle={(e) => {
+                                if (e) e.stopPropagation();
+                                setShowFilterDropdown(!showFilterDropdown);
                             }}
-                            disabled={nodes.length === 0}
-                            style={{
-                                backgroundColor: getColorForLevel(theme, 0),
-                                borderColor: theme.border,
-                                color: theme.text
-                            }}
-                        >
-                            ✓
-                        </button>
+                            theme={theme}
+                            filterOptions={filterOptions}
+                        />
                         
                         <button
                             className="control-btn"
@@ -1559,55 +1651,66 @@
                 {/* Main Content - Conditional Tree/Markdown View */}
                 {showMarkdownView ? (
                     <MarkdownView 
-                        markdown={generateMarkdown()} 
+                        markdown={generateMarkdown(currentFilter !== 'all')} 
                         theme={theme} 
-                        onDownload={exportMarkdown}
+                        onDownload={() => exportMarkdown(currentFilter !== 'all')}
                     />
                 ) : (
                     <div className="main-content">
                         <div className="nodes-container" ref={nodesContainerRef}>
-                            {nodes.map(node => (
-                                <div key={node.id} data-node-id={node.id}>
-                                    <NodeComponent
-                                        node={node}
-                                        theme={theme}
-                                        isSelected={selectedNodeId === node.id}
-                                        onTap={(e) => {
-                                            e.stopPropagation();
-                                            
-                                            if (selectedNodeId === node.id) {
-                                                setSelectedNodeId(null);
-                                                // Reset to the last node's level when deselecting
-                                                if (nodes.length > 0) {
-                                                    setCurrentIndentLevel(nodes[nodes.length - 1].level);
-                                                } else {
-                                                    setCurrentIndentLevel(0);
-                                                }
-                                            } else {
-                                                setSelectedNodeId(node.id);
-                                                setCurrentIndentLevel(node.level + 1);
-                                                
-                                                // Scroll to selected node
-                                                setTimeout(() => {
-                                                    const element = document.querySelector(`[data-node-id="${node.id}"]`);
-                                                    if (element) {
-                                                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                                    }
-                                                }, 100);
-                                            }
-                                        }}
-                                        onIndent={() => indentNode(node.id)}
-                                        onOutdent={() => outdentNode(node.id)}
-                                        onDelete={() => deleteNode(node.id)}
-                                        onFocus={() => focusNode(node.id)}
-                                        onToggleTask={() => toggleTask(node.id)}
-                                        onToggleComplete={() => toggleComplete(node.id)}
-                                        onLink={() => startLinking(node.id)}
-                                        onUnlink={() => unlinkNode(node.id)}
-                                        onJumpToLink={() => jumpToLinkedNode(node.id)}
-                                    />
+                            {getFilteredNodes().length === 0 && nodes.length > 0 && currentFilter !== 'all' ? (
+                                <div className="empty-state">
+                                    <div className="empty-icon">{filterOptions.find(f => f.key === currentFilter)?.icon}</div>
+                                    <div className="empty-title">No {filterOptions.find(f => f.key === currentFilter)?.label.toLowerCase()} found</div>
+                                    <div className="empty-desc">
+                                        Try a different filter or add some {currentFilter === 'tasks' ? 'task nodes' : currentFilter === 'notes' ? 'notes to your nodes' : 'links between nodes'}.
+                                    </div>
                                 </div>
-                            ))}
+                            ) : (
+                                getFilteredNodes().map(node => (
+                                    <div key={node.id} data-node-id={node.id}>
+                                        <NodeComponent
+                                            node={node}
+                                            theme={theme}
+                                            isSelected={selectedNodeId === node.id}
+                                            backlinks={getBacklinksForNode(node.id)}
+                                            onTap={(e) => {
+                                                e.stopPropagation();
+                                                
+                                                if (selectedNodeId === node.id) {
+                                                    setSelectedNodeId(null);
+                                                    // Reset to the last node's level when deselecting
+                                                    if (nodes.length > 0) {
+                                                        setCurrentIndentLevel(nodes[nodes.length - 1].level);
+                                                    } else {
+                                                        setCurrentIndentLevel(0);
+                                                    }
+                                                } else {
+                                                    setSelectedNodeId(node.id);
+                                                    setCurrentIndentLevel(node.level + 1);
+                                                    
+                                                    // Scroll to selected node
+                                                    setTimeout(() => {
+                                                        const element = document.querySelector(`[data-node-id="${node.id}"]`);
+                                                        if (element) {
+                                                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                        }
+                                                    }, 100);
+                                                }
+                                            }}
+                                            onIndent={() => indentNode(node.id)}
+                                            onOutdent={() => outdentNode(node.id)}
+                                            onDelete={() => deleteNode(node.id)}
+                                            onFocus={() => focusNode(node.id)}
+                                            onToggleTask={() => toggleTask(node.id)}
+                                            onToggleComplete={() => toggleComplete(node.id)}
+                                            onLink={() => startLinking(node.id)}
+                                            onUnlink={() => unlinkNode(node.id)}
+                                            onJumpToLink={() => jumpToLinkedNode(node.id)}
+                                        />
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 )}
@@ -1698,9 +1801,13 @@
                             </div>
                         )}
                         
-                        {nodes.length === 0 && (
+                        {nodes.length === 0 ? (
                             <div className="instructions" style={{ color: theme.text }}>
                                 Swipe right to indent • Swipe left to outdent • Swipe on input box to adjust level • Return to add node • Link to connect thoughts
+                            </div>
+                        ) : currentFilter !== 'all' && (
+                            <div className="instructions" style={{ color: theme.text }}>
+                                Showing {getFilteredNodes().length} of {nodes.length} nodes • Filter: {filterOptions.find(f => f.key === currentFilter)?.label}
                             </div>
                         )}
                     </div>
