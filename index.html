@@ -2164,11 +2164,11 @@
                                                             currentTreeIndex={treeIndex}
                                                             onTap={(e) => {
                                                                 e.stopPropagation();
-                                                                
-                                                                if (isMobile) {
+                                                                const isBranchedTree = !!trees[treeIndex].parentTreeId;
+                                                                // On mobile, only allow navigation if not in a branched tree
+                                                                if (isMobile && !isBranchedTree && treeIndex !== activeTreeIndex) {
                                                                     setActiveTreeIndex(treeIndex);
                                                                 }
-                                                                
                                                                 if (selectedNodeId === node.id && activeTreeIndex === treeIndex) {
                                                                     setSelectedNodeId(null);
                                                                     if (tree.nodes.length > 0) {
@@ -2179,9 +2179,9 @@
                                                                 } else {
                                                                     setSelectedNodeId(node.id);
                                                                     setSelectedTreeIndex(treeIndex);
-                                                                    setActiveTreeIndex(treeIndex);
+                                                                    // Only set active tree index if not in a branched tree
+                                                                    if (!isBranchedTree) setActiveTreeIndex(treeIndex);
                                                                     setCurrentIndentLevel(node.level + 1);
-                                                                    
                                                                     setTimeout(() => {
                                                                         const element = document.querySelector(`[data-node-id="${node.id}"]`);
                                                                         if (element) {
