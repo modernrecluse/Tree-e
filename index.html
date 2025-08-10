@@ -6,18 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tree-e - Hierarchical Note Taking</title>
 
-
 <!-- PWA Meta Tags -->
+
 <meta name="description" content="Tree-e: Hierarchical note-taking app with beautiful themes">
 <meta name="theme-color" content="#e9f5e9">
-<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiVHJlZS1lIiwic2hvcnRfbmFtZSI6IlRyZWUtZSIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwic3RhcnRfdXJsIjoiLyIsInRoZW1lX2NvbG9yIjoiI2U5ZjVlOSIsImJhY2tncm91bmRfY29sb3IiOiIjZTlmNWU5IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaUlIWnBaWGRDYjNnOUlqQWdNQ0F4TWpnZ01USTRMQ0lqSURFeU9DQXhNamt6TGpFMWNpNGhMU0lnWm1sc2JEMGlJek5tWm1NeVlpSStQR04xY21ObElDOStQSEJoZEdnZ1pEMGlUVEkxSURjMElHTnNhWEJRWVhSb1BDOWpkWEpqYkdVK1BHTnBjbU5zWlNCamVEMGlObVFpSUdONVBTSTJaQ0lnY2owNU1pd2dOUGdnTWpOa01EWk1OUzhpSUdac2JIcGJKVGMwT1RVaU5qWWlQand2WTJseVkyeGxQanh6ZEhKdmEyVWdkMmxrZEdnOVlqTWlJR2hsYVdkb2REMGlOakkwSWlCamIyeDFjeWNpSWlCelpubHNaVDBpZDBsa1lXWGtPVFprWnpBaE1qQXNPREkyWklCMFpXMWpkVDRpSUhCdlpXbHVkR2s5VGpFa2NTSXZQanczSWo0OEwzTjJaejQ9IiwidHlwZSI6ImltYWdlL3N2Zyt4bWwiLCJzaXplcyI6IjEyOHgxMjgifV19">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiVHJlZS1lIiwic2hvcnRfbmFtZSI6IlRyZWUtZSIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwic3RhcnRfdXJsIjoiLyIsInRoZW1lX2NvbG9yIjoiI2U5ZjVlOSIsImJhY2tncm91bmRfY29sb3IiOiIjZTlmNWU5IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaUlIWnBaWGRDYjNnOUlqQWdNQ0F4TWpnZ01USTRMQ0lqSURFeU9DQXhNamt6TGpGMWNpNGhMU0lnWm1sc2JEMGlJek5tWm1NeVlpSStQR04xY21ObElDOStQSEJoZEdnZ1pEMGlUVEkxSURjMElHTnNhWEJRWVhSb1BDOWpkWEpqYkdVK1BHTnBjbU5zWlNCamVEMGlObVFpSUdONVBTSTJaQ0lnY2owNU1pd2dOUGdnTWpOa01EWk1OUzhpSUdac2JIcGJKVGMwT1RVaU5qWWlQand2WTJseVkyeGxQanh6ZEhKdmEyVWdkMmxrZEdnOVlqTWlJR2hsYVdkb2REMGlOakkwSWlCamIyeDFjeWNpSWlCelpubHNaVDBpZDBsa1lXWGtPVFprWnpBaE1qQXNPREkyWklCMFpXMWpkVDRpSUhCdlpXbHVkR2s5VGpFa2NTSXZQanczSWo0OEwzTjJaejQ9IiwidHlwZSI6ImltYWdlL3N2Zyt4bWwiLCJzaXplcyI6IjEyOHgxMjgifV19">
 
 <!-- React and Babel -->
+
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 
 <!-- Fonts -->
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
@@ -51,13 +55,31 @@
     
     .header {
         display: flex;
+        flex-direction: column;
+        gap: 0;
+        padding: 1rem;
+        flex-shrink: 0;
+        border-bottom: 1px solid rgba(0,0,0,0.08);
+        min-height: 60px;
+    }
+    
+    .header-main {
+        display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 1rem;
         gap: 0.75rem;
-        flex-shrink: 0;
-        border-bottom: 1px solid rgba(0,0,0,0.1);
-        min-height: 60px;
+    }
+    
+    .header-breadcrumb {
+        margin-top: 0.25rem;
+        padding-left: 0;
+    }
+    
+    .header-breadcrumb-text {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: clamp(0.6875rem, 2vw, 0.75rem);
+        opacity: 0.5;
+        color: inherit;
     }
     
     .header h1 {
@@ -102,11 +124,91 @@
     
     .main-content {
         flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+    
+    .trees-container {
+        flex: 1;
+        display: flex;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: 0;
+        background: inherit;
+        scroll-behavior: smooth;
+    }
+    
+    .trees-container.mobile {
+        flex-direction: column;
+        position: relative;
+        overflow-x: hidden;
+    }
+    
+    .tree-pane {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        min-width: 320px;
+        background: inherit;
+        border-right: 1px solid rgba(0,0,0,0.08);
+    }
+    
+    .tree-pane:last-child {
+        border-right: none;
+    }
+    
+    .tree-pane.mobile {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        min-width: auto;
+        border-right: none;
+        transform: translateX(0);
+        transition: transform 0.3s ease;
+        background: inherit;
+        z-index: 1;
+    }
+    
+    .tree-pane.mobile.hidden {
+        transform: translateX(100%);
+    }
+    
+    .tree-nav-btn {
+        width: clamp(24px, 6vw, 28px);
+        height: clamp(24px, 6vw, 28px);
+        border: 1px solid;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: clamp(0.625rem, 2.5vw, 0.75rem);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: transparent;
+        flex-shrink: 0;
+    }
+    
+    .tree-nav-btn:hover:not(:disabled) {
+        transform: scale(1.05);
+    }
+    
+    .tree-nav-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+    
+    .tree-content {
+        flex: 1;
         overflow-y: auto;
         overflow-x: hidden;
         padding: clamp(0.75rem, 3vw, 1rem);
         scroll-behavior: smooth;
-        min-height: 0; /* Critical for flex child scrolling */
+        min-height: 0;
     }
     
     .nodes-container {
@@ -116,7 +218,7 @@
         min-height: min-content;
         width: 100%;
         max-width: none;
-        padding-bottom: clamp(1rem, 4vw, 2rem); /* Add bottom padding for better scrolling */
+        padding-bottom: clamp(1rem, 4vw, 2rem);
     }
     
     .node {
@@ -170,21 +272,6 @@
         opacity: 0.6;
     }
     
-    .node-content.new {
-        animation: nodeAppear 0.3s ease-out;
-    }
-    
-    @keyframes nodeAppear {
-        from {
-            opacity: 0;
-            transform: scale(0.95);
-        }
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
-    }
-    
     .task-toggle {
         font-size: 18px;
         cursor: pointer;
@@ -236,16 +323,18 @@
         transform: scale(1.05);
     }
     
+    .action-btn.edit { background: #6366f1; }
     .action-btn.task { background: #22c55e; }
     .action-btn.focus { background: #3b82f6; }
     .action-btn.link { background: #a855f7; }
     .action-btn.unlink { background: #f97316; }
+    .action-btn.branch { background: #10b981; }
     .action-btn.delete { background: #ef4444; }
     
     .input-area {
         flex-shrink: 0;
         padding: 16px;
-        border-top: 1px solid rgba(0,0,0,0.1);
+        border-top: 1px solid rgba(0,0,0,0.08);
         background: inherit;
     }
     
@@ -361,7 +450,7 @@
     
     .modal-header {
         padding: 16px;
-        border-bottom: 1px solid rgba(0,0,0,0.1);
+        border-bottom: 1px solid rgba(0,0,0,0.08);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -391,7 +480,7 @@
         width: 100%;
         min-height: 200px;
         padding: 12px;
-        border: 1px solid rgba(0,0,0,0.2);
+        border: 1px solid rgba(0,0,0,0.15);
         border-radius: 8px;
         font-size: 16px;
         font-family: inherit;
@@ -564,7 +653,11 @@
         
         .header {
             padding: 0.75rem;
-            min-height: 60px;
+        }
+        
+        .header-main {
+            flex-wrap: wrap;
+            gap: 0.375rem;
         }
         
         .header h1 {
@@ -657,11 +750,9 @@
     }
 </style>
 
-
 </head>
 <body>
     <div id="root"></div>
-
 
 <script type="text/babel">
     const { useState, useEffect, useRef, useCallback } = React;
@@ -744,26 +835,61 @@
             return theme.levelColors[level];
         } else {
             const baseColorIndex = level % theme.levelColors.length;
-            return theme.levelColors[baseColorIndex] + '80'; // Add transparency for deeper levels
+            return theme.levelColors[baseColorIndex] + '80';
         }
     };
 
     // Storage utilities
-    const saveToStorage = (nodes) => {
+    const saveToStorage = (trees) => {
         try {
-            localStorage.setItem('tree-e-nodes', JSON.stringify(nodes));
+            localStorage.setItem('tree-e-trees', JSON.stringify(trees));
+            const mainTree = trees.find(tree => tree.id === 'main');
+            if (mainTree) {
+                localStorage.setItem('tree-e-nodes', JSON.stringify(mainTree.nodes));
+            }
         } catch (error) {
-            console.error('Failed to save nodes:', error);
+            console.error('Failed to save trees:', error);
         }
     };
 
     const loadFromStorage = () => {
         try {
-            const saved = localStorage.getItem('tree-e-nodes');
-            return saved ? JSON.parse(saved) : [];
+            const savedTrees = localStorage.getItem('tree-e-trees');
+            if (savedTrees) {
+                return JSON.parse(savedTrees);
+            }
+            
+            const savedNodes = localStorage.getItem('tree-e-nodes');
+            if (savedNodes) {
+                const nodes = JSON.parse(savedNodes);
+                return [{
+                    id: 'main',
+                    title: 'Main Tree',
+                    nodes: nodes,
+                    parentTreeId: null,
+                    parentNodeId: null,
+                    breadcrumb: []
+                }];
+            }
+            
+            return [{
+                id: 'main',
+                title: 'Main Tree',
+                nodes: [],
+                parentTreeId: null,
+                parentNodeId: null,
+                breadcrumb: []
+            }];
         } catch (error) {
-            console.error('Failed to load nodes:', error);
-            return [];
+            console.error('Failed to load trees:', error);
+            return [{
+                id: 'main',
+                title: 'Main Tree',
+                nodes: [],
+                parentTreeId: null,
+                parentNodeId: null,
+                breadcrumb: []
+            }];
         }
     };
 
@@ -822,8 +948,41 @@
     };
 
     // Components
-    const NodeComponent = ({ node, theme, isSelected, backlinks = [], onTap, onIndent, onOutdent, onDelete, onFocus, onToggleTask, onToggleComplete, onLink, onUnlink, onJumpToLink }) => {
+    const NodeComponent = ({ node, theme, isSelected, backlinks = [], treesLength = 1, editingNodeId, onTap, onIndent, onOutdent, onDelete, onFocus, onToggleTask, onToggleComplete, onLink, onUnlink, onJumpToLink, onBranchOut, onEdit, onSaveEdit, onCancelEdit }) => {
         const swipeHandlers = useTouchHandler(onOutdent, onIndent);
+        const [editText, setEditText] = useState(node.content);
+        const editInputRef = useRef(null);
+
+        const isEditing = editingNodeId === node.id;
+
+        useEffect(() => {
+            if (isEditing && editInputRef.current) {
+                editInputRef.current.focus();
+                editInputRef.current.select();
+            }
+        }, [isEditing]);
+
+        useEffect(() => {
+            setEditText(node.content);
+        }, [node.content]);
+
+        const handleSaveEdit = () => {
+            const trimmedText = editText.trim();
+            if (trimmedText && trimmedText !== node.content) {
+                onSaveEdit(node.id, trimmedText);
+            } else {
+                onCancelEdit();
+            }
+        };
+
+        const handleKeyPress = (e) => {
+            if (e.key === 'Enter') {
+                handleSaveEdit();
+            } else if (e.key === 'Escape') {
+                setEditText(node.content);
+                onCancelEdit();
+            }
+        };
 
         return (
             <div className="node">
@@ -835,21 +994,21 @@
                 
                 <div className="node-content-wrapper">
                     <div 
-                        className={`node-content ${isSelected ? 'selected' : ''} ${node.isTask && node.isCompleted ? 'completed' : ''} ${node.isNew ? 'new' : ''}`}
+                        className={`node-content ${isSelected ? 'selected' : ''} ${node.isTask && node.isCompleted ? 'completed' : ''}`}
                         style={{
                             backgroundColor: isSelected ? theme.border : getColorForLevel(theme, node.level),
                             borderColor: isSelected ? theme.text : theme.border,
                             color: theme.text
                         }}
-                        onClick={(e) => onTap(e)}
-                        {...swipeHandlers}
+                        onClick={(e) => !isEditing && onTap(e)}
+                        {...(!isEditing ? swipeHandlers : {})}
                     >
                         {node.isTask && (
                             <div 
                                 className="task-toggle" 
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    onToggleComplete();
+                                    if (!isEditing) onToggleComplete();
                                 }}
                                 style={{ color: node.isCompleted ? '#22c55e' : theme.text + '99' }}
                             >
@@ -857,38 +1016,65 @@
                             </div>
                         )}
                         
-                        <div className={`node-text ${node.isTask && node.isCompleted ? 'completed' : ''}`}>
-                            {node.content}
-                        </div>
+                        {isEditing ? (
+                            <input
+                                ref={editInputRef}
+                                type="text"
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                onKeyDown={handleKeyPress}
+                                onBlur={handleSaveEdit}
+                                style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    outline: 'none',
+                                    color: theme.text,
+                                    font: 'inherit',
+                                    fontSize: '16px',
+                                    width: '100%',
+                                    minWidth: '100px'
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                            />
+                        ) : (
+                            <div className={`node-text ${node.isTask && node.isCompleted ? 'completed' : ''}`}>
+                                {node.content}
+                            </div>
+                        )}
                         
-                        <div className="node-icons" style={{ color: theme.text + '99' }}>
-                            {node.isTask && <span>□</span>}
-                            {node.note && node.note.trim() && <span>◊</span>}
-                            {node.linkedNodeId && (
-                                <span 
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onJumpToLink();
-                                    }}
-                                    style={{ color: '#3b82f6', cursor: 'pointer' }}
-                                    title="Jumps to linked node"
-                                >
-                                    ↗
-                                </span>
-                            )}
-                            {backlinks.length > 0 && (
-                                <span 
-                                    style={{ color: '#8b5cf6', cursor: 'pointer' }}
-                                    title={`${backlinks.length} node${backlinks.length > 1 ? 's' : ''} link${backlinks.length > 1 ? '' : 's'} to this`}
-                                >
-                                    ↙
-                                </span>
-                            )}
-                        </div>
+                        {!isEditing && (
+                            <div className="node-icons" style={{ color: theme.text + '99' }}>
+                                {node.isTask && <span>□</span>}
+                                {node.note && node.note.trim() && <span>◊</span>}
+                                {node.linkedNodeId && (
+                                    <span 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onJumpToLink();
+                                        }}
+                                        style={{ color: '#3b82f6', cursor: 'pointer' }}
+                                        title="Jumps to linked node"
+                                    >
+                                        ↗
+                                    </span>
+                                )}
+                                {backlinks.length > 0 && (
+                                    <span 
+                                        style={{ color: '#8b5cf6', cursor: 'pointer' }}
+                                        title={`${backlinks.length} node${backlinks.length > 1 ? 's' : ''} link${backlinks.length > 1 ? '' : 's'} to this`}
+                                    >
+                                        ↙
+                                    </span>
+                                )}
+                            </div>
+                        )}
                     </div>
                     
-                    {isSelected && (
+                    {isSelected && !isEditing && (
                         <div className="node-actions">
+                            <button className="action-btn edit" onClick={() => onEdit(node.id)} style={{ background: '#6366f1' }}>
+                                ✎ <span>Edit</span>
+                            </button>
                             <button className="action-btn task" onClick={onToggleTask}>
                                 □ <span>{node.isTask ? 'Note' : 'Task'}</span>
                             </button>
@@ -904,8 +1090,31 @@
                                     ○—○ <span>Link</span>
                                 </button>
                             )}
+                            <button 
+                                className="action-btn branch" 
+                                onClick={onBranchOut} 
+                                disabled={treesLength >= 5}
+                                style={{ 
+                                    background: treesLength >= 5 ? '#94a3b8' : '#10b981',
+                                    cursor: treesLength >= 5 ? 'not-allowed' : 'pointer'
+                                }}
+                                title={treesLength >= 5 ? 'Maximum 5 trees allowed' : 'Branch out to explore this thought'}
+                            >
+                                ⫷ <span>Branch</span>
+                            </button>
                             <button className="action-btn delete" onClick={onDelete}>
                                 ╳ <span>Delete</span>
+                            </button>
+                        </div>
+                    )}
+                    
+                    {isEditing && (
+                        <div className="node-actions">
+                            <button className="action-btn" onClick={handleSaveEdit} style={{ background: '#22c55e' }}>
+                                ✓ <span>Save</span>
+                            </button>
+                            <button className="action-btn" onClick={() => { setEditText(node.content); onCancelEdit(); }} style={{ background: '#6b7280' }}>
+                                ✕ <span>Cancel</span>
                             </button>
                         </div>
                     )}
@@ -1037,7 +1246,7 @@
                     <div className="about-section">
                         <h4 className="about-title">The Philosophy</h4>
                         <p className="about-text">
-                            Tree-e embraces the power of simplicity. Like branches forming trees, individual thoughts combine to create complex ideas. This minimalist approach lets you capture ideas quickly, organize them naturally, and let meaningful connections emerge organically.
+                            Tree-e embraces the power of simplicity and exploration. Like branches forming trees, individual thoughts combine to create complex ideas. The new branching feature lets you explore different paths and perspectives, creating a forest of interconnected knowledge.
                         </p>
                     </div>
                     
@@ -1047,6 +1256,14 @@
                             <div className="feature-item">
                                 <div className="feature-title">Hierarchical Thinking:</div>
                                 <div className="feature-desc">Use swipe gestures to create natural thought structures with color-coded levels.</div>
+                            </div>
+                            <div className="feature-item">
+                                <div className="feature-title">Inline Editing:</div>
+                                <div className="feature-desc">Edit any node text directly with a simple click. Perfect for refining thoughts as they evolve.</div>
+                            </div>
+                            <div className="feature-item">
+                                <div className="feature-title">Branch-Out Exploration:</div>
+                                <div className="feature-desc">Select any node and branch out to explore it in a dedicated workspace. Create up to 5 connected trees.</div>
                             </div>
                             <div className="feature-item">
                                 <div className="feature-title">Focus Mode:</div>
@@ -1075,11 +1292,13 @@
                             <div>• Swipe on input box to adjust indent level</div>
                             <div>• Notice how each level gets its own color</div>
                             <div>• Tap nodes to access edit options</div>
+                            <div>• Use Edit to modify node text inline</div>
+                            <div>• Use Branch to explore thoughts in new trees</div>
                             <div>• Use Notes to add detailed information</div>
                             <div>• Use Link to connect related thoughts</div>
-                            <div>• Export button shares as Markdown</div>
+                            <div>• Export button shares all trees as Markdown</div>
                             <div>• Your work auto-saves as you create</div>
-                            <div>• Use the checkmark button for manual save</div>
+                            <div>• Navigate with breadcrumbs in the header</div>
                         </div>
                     </div>
                 </div>
@@ -1168,7 +1387,6 @@
                 flex: 1,
                 overflow: 'hidden'
             }}>
-                {/* Download button */}
                 <div style={{
                     padding: 'clamp(0.75rem, 3vw, 1rem)',
                     borderBottom: `1px solid ${theme.border}`,
@@ -1194,7 +1412,6 @@
                     </button>
                 </div>
                 
-                {/* Markdown content */}
                 <div style={{ 
                     flex: 1, 
                     overflow: 'auto', 
@@ -1213,11 +1430,13 @@
 
     // Main App Component
     const TreeApp = () => {
-        // State
-        const [nodes, setNodes] = useState([]);
+        const [trees, setTrees] = useState([]);
+        const [activeTreeIndex, setActiveTreeIndex] = useState(0);
         const [currentInput, setCurrentInput] = useState('');
         const [currentIndentLevel, setCurrentIndentLevel] = useState(0);
         const [selectedNodeId, setSelectedNodeId] = useState(null);
+        const [selectedTreeIndex, setSelectedTreeIndex] = useState(0);
+        const [editingNodeId, setEditingNodeId] = useState(null);
         const [focusedNode, setFocusedNode] = useState(null);
         const [currentTheme, setCurrentTheme] = useState('matcha');
         const [showAbout, setShowAbout] = useState(false);
@@ -1229,17 +1448,36 @@
         const [showClearConfirm, setShowClearConfirm] = useState(false);
         const [currentFilter, setCurrentFilter] = useState('all');
         const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+        const [isMobile, setIsMobile] = useState(false);
 
         const inputRef = useRef(null);
         const nodesContainerRef = useRef(null);
-        const maintainFocus = useRef(true); // Track if we should maintain focus
+        const maintainFocus = useRef(true);
 
-        // Load data on mount
         useEffect(() => {
-            setNodes(loadFromStorage());
+            const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+            checkMobile();
+            window.addEventListener('resize', checkMobile);
+            return () => window.removeEventListener('resize', checkMobile);
+        }, []);
+
+        const getCurrentNodes = () => {
+            return trees[activeTreeIndex]?.nodes || [];
+        };
+
+        const updateCurrentNodes = (updater) => {
+            setTrees(prev => prev.map((tree, index) => 
+                index === activeTreeIndex 
+                    ? { ...tree, nodes: typeof updater === 'function' ? updater(tree.nodes) : updater }
+                    : tree
+            ));
+        };
+
+        useEffect(() => {
+            const loadedTrees = loadFromStorage();
+            setTrees(loadedTrees);
             setCurrentTheme(loadThemeFromStorage());
             
-            // Auto-focus on mount
             setTimeout(() => {
                 if (inputRef.current) {
                     inputRef.current.focus();
@@ -1248,33 +1486,31 @@
             }, 500);
         }, []);
 
-        // Auto-save when nodes change
         useEffect(() => {
-            saveToStorage(nodes);
-        }, [nodes]);
+            if (trees.length > 0) {
+                saveToStorage(trees);
+            }
+        }, [trees]);
 
-        // Save theme when it changes
         useEffect(() => {
             saveThemeToStorage(currentTheme);
         }, [currentTheme]);
 
         const theme = themes[currentTheme];
 
-        // Touch handlers for input area
         const inputSwipeHandlers = useTouchHandler(
             () => setCurrentIndentLevel(prev => Math.max(0, prev - 1)),
             () => setCurrentIndentLevel(prev => prev + 1)
         );
 
-        // Functions
         const addNode = () => {
             const content = currentInput.trim();
             if (!content) return;
 
+            const nodes = getCurrentNodes();
             let insertIndex = nodes.length;
             let newLevel = currentIndentLevel;
 
-            // If there's a selected node, insert as its child
             if (selectedNodeId) {
                 const selectedNode = nodes.find(node => node.id === selectedNodeId);
                 const selectedIndex = nodes.findIndex(node => node.id === selectedNodeId);
@@ -1282,21 +1518,16 @@
                 if (selectedNode !== undefined && selectedIndex !== -1) {
                     newLevel = selectedNode.level + 1;
                     
-                    // Find where to insert - after the selected node and all its children
                     let insertAfterIndex = selectedIndex;
                     
-                    // Look for all children of the selected node
                     for (let i = selectedIndex + 1; i < nodes.length; i++) {
                         if (nodes[i].level > selectedNode.level) {
-                            // This is a child/descendant of the selected node
                             insertAfterIndex = i;
                         } else {
-                            // We've reached a sibling or parent level, stop here
                             break;
                         }
                     }
                     
-                    // Insert right after the last child (or the selected node if no children)
                     insertIndex = insertAfterIndex + 1;
                 }
             }
@@ -1308,24 +1539,18 @@
                 note: '',
                 linkedNodeId: null,
                 isTask: false,
-                isCompleted: false,
-                isNew: true
+                isCompleted: false
             };
 
-            const newNodes = [...nodes];
-            newNodes.splice(insertIndex, 0, newNode);
-            setNodes(newNodes);
+            updateCurrentNodes(prevNodes => {
+                const newNodes = [...prevNodes];
+                newNodes.splice(insertIndex, 0, newNode);
+                return newNodes;
+            });
+            
             setCurrentInput('');
             setCurrentIndentLevel(newLevel);
 
-            // Remove isNew flag after animation
-            setTimeout(() => {
-                setNodes(prev => prev.map(node => 
-                    node.id === newNode.id ? { ...node, isNew: false } : node
-                ));
-            }, 300);
-
-            // Scroll to new node in the main content area
             setTimeout(() => {
                 const nodeElement = document.querySelector(`[data-node-id="${newNode.id}"]`);
                 if (nodeElement && nodesContainerRef.current) {
@@ -1335,40 +1560,41 @@
         };
 
         const deleteNode = (nodeId) => {
-            setNodes(prev => prev.filter(node => node.id !== nodeId));
+            updateCurrentNodes(prevNodes => prevNodes.filter(node => node.id !== nodeId));
             if (selectedNodeId === nodeId) {
                 setSelectedNodeId(null);
             }
         };
 
         const indentNode = (nodeId) => {
-            setNodes(prev => prev.map(node =>
+            updateCurrentNodes(prevNodes => prevNodes.map(node =>
                 node.id === nodeId ? { ...node, level: node.level + 1 } : node
             ));
             setSelectedNodeId(null);
         };
 
         const outdentNode = (nodeId) => {
-            setNodes(prev => prev.map(node =>
+            updateCurrentNodes(prevNodes => prevNodes.map(node =>
                 node.id === nodeId ? { ...node, level: Math.max(0, node.level - 1) } : node
             ));
             setSelectedNodeId(null);
         };
 
         const toggleTask = (nodeId) => {
-            setNodes(prev => prev.map(node =>
+            updateCurrentNodes(prevNodes => prevNodes.map(node =>
                 node.id === nodeId ? { ...node, isTask: !node.isTask, isCompleted: false } : node
             ));
             setSelectedNodeId(null);
         };
 
         const toggleComplete = (nodeId) => {
-            setNodes(prev => prev.map(node =>
+            updateCurrentNodes(prevNodes => prevNodes.map(node =>
                 node.id === nodeId ? { ...node, isCompleted: !node.isCompleted } : node
             ));
         };
 
         const focusNode = (nodeId) => {
+            const nodes = getCurrentNodes();
             const node = nodes.find(n => n.id === nodeId);
             if (node) {
                 setFocusedNode(node);
@@ -1378,7 +1604,7 @@
 
         const saveFocusNote = (note) => {
             if (focusedNode) {
-                setNodes(prev => prev.map(node =>
+                updateCurrentNodes(prevNodes => prevNodes.map(node =>
                     node.id === focusedNode.id ? { ...node, note } : node
                 ));
             }
@@ -1393,7 +1619,7 @@
 
         const linkNodes = (targetNodeId) => {
             if (linkingFromNodeId) {
-                setNodes(prev => prev.map(node =>
+                updateCurrentNodes(prevNodes => prevNodes.map(node =>
                     node.id === linkingFromNodeId ? { ...node, linkedNodeId: targetNodeId } : node
                 ));
             }
@@ -1402,18 +1628,18 @@
         };
 
         const unlinkNode = (nodeId) => {
-            setNodes(prev => prev.map(node =>
+            updateCurrentNodes(prevNodes => prevNodes.map(node =>
                 node.id === nodeId ? { ...node, linkedNodeId: null } : node
             ));
             setSelectedNodeId(null);
         };
 
         const jumpToLinkedNode = (nodeId) => {
+            const nodes = getCurrentNodes();
             const node = nodes.find(n => n.id === nodeId);
             if (node?.linkedNodeId) {
                 setSelectedNodeId(node.linkedNodeId);
                 
-                // Scroll to linked node
                 setTimeout(() => {
                     const element = document.querySelector(`[data-node-id="${node.linkedNodeId}"]`);
                     if (element) {
@@ -1423,44 +1649,130 @@
             }
         };
 
+        const editNode = (nodeId) => {
+            setEditingNodeId(nodeId);
+            setSelectedNodeId(null);
+        };
+
+        const saveEditNode = (nodeId, newContent) => {
+            updateCurrentNodes(prevNodes => prevNodes.map(node =>
+                node.id === nodeId ? { ...node, content: newContent } : node
+            ));
+            setEditingNodeId(null);
+        };
+
+        const cancelEditNode = () => {
+            setEditingNodeId(null);
+        };
+
+        const branchOut = (nodeId) => {
+            const nodes = getCurrentNodes();
+            const currentTree = trees[activeTreeIndex];
+            const selectedNode = nodes.find(node => node.id === nodeId);
+            
+            if (!selectedNode || trees.length >= 5) return;
+
+            const nodeAndChildren = [];
+            let foundParent = false;
+            
+            for (const node of nodes) {
+                if (node.id === selectedNode.id) {
+                    foundParent = true;
+                    nodeAndChildren.push({
+                        ...node,
+                        level: 0
+                    });
+                } else if (foundParent && node.level > selectedNode.level) {
+                    const levelDifference = node.level - selectedNode.level;
+                    nodeAndChildren.push({
+                        ...node,
+                        level: levelDifference
+                    });
+                } else if (foundParent && node.level <= selectedNode.level) {
+                    break;
+                }
+            }
+
+            const truncatedTitle = selectedNode.content.length > 20 
+                ? selectedNode.content.substring(0, 17) + '...'
+                : selectedNode.content;
+
+            // Create minimal breadcrumb
+            const newBreadcrumb = [...currentTree.breadcrumb];
+            if (currentTree.title !== 'Main Tree') {
+                newBreadcrumb.push(currentTree.title);
+            }
+            
+            // Keep breadcrumb concise for mobile
+            if (newBreadcrumb.length > 2) {
+                newBreadcrumb.splice(0, newBreadcrumb.length - 2);
+                newBreadcrumb[0] = '...' + newBreadcrumb[0];
+            }
+
+            const newTree = {
+                id: generateId(),
+                title: truncatedTitle,
+                nodes: nodeAndChildren,
+                parentTreeId: currentTree.id,
+                parentNodeId: selectedNode.id,
+                breadcrumb: newBreadcrumb
+            };
+
+            setTrees(prev => [...prev, newTree]);
+            setActiveTreeIndex(trees.length);
+            setSelectedNodeId(null);
+            setCurrentIndentLevel(0);
+        };
+
         const generateMarkdown = (useFilteredNodes = false) => {
-            const nodesToUse = useFilteredNodes ? getFilteredNodes() : nodes;
-            return nodesToUse.map(node => {
-                const indent = '  '.repeat(node.level);
-                let content = `${indent}- ${node.content}`;
+            return trees.map((tree, index) => {
+                const nodesToUse = useFilteredNodes ? getFilteredNodes(tree.nodes) : tree.nodes;
                 
-                if (node.linkedNodeId) {
-                    const linkedNode = nodes.find(n => n.id === node.linkedNodeId);
-                    if (linkedNode) {
-                        content += ` → linked to: ${linkedNode.content}`;
+                let treeMarkdown = `# ${tree.title}`;
+                if (tree.breadcrumb.length > 0) {
+                    treeMarkdown += ` (Branch from: ${tree.breadcrumb.join(' > ')})`;
+                }
+                treeMarkdown += '\n\n';
+                
+                const nodeMarkdown = nodesToUse.map(node => {
+                    const indent = '  '.repeat(node.level);
+                    let content = `${indent}- ${node.content}`;
+                    
+                    if (node.linkedNodeId) {
+                        let linkedNode = null;
+                        for (const searchTree of trees) {
+                            linkedNode = searchTree.nodes.find(n => n.id === node.linkedNodeId);
+                            if (linkedNode) break;
+                        }
+                        if (linkedNode) {
+                            content += ` → linked to: ${linkedNode.content}`;
+                        }
                     }
-                }
+                    
+                    if (node.note && node.note.trim()) {
+                        const noteLines = node.note.split('\n');
+                        const indentedNote = noteLines.map(line => `${indent}  > ${line}`).join('\n');
+                        content += '\n' + indentedNote;
+                    }
+                    
+                    return content;
+                }).join('\n');
                 
-                if (node.note && node.note.trim()) {
-                    const noteLines = node.note.split('\n');
-                    const indentedNote = noteLines.map(line => `${indent}  > ${line}`).join('\n');
-                    content += '\n' + indentedNote;
-                }
-                
-                return content;
-            }).join('\n');
+                return treeMarkdown + (nodeMarkdown || '*Empty tree*');
+            }).join('\n\n---\n\n');
         };
 
         const toggleMarkdownView = () => {
             setShowMarkdownView(!showMarkdownView);
-            // Reset selected node when switching views
             if (!showMarkdownView) {
                 setSelectedNodeId(null);
                 setIsInputFocused(false);
             }
-            // Note: We keep the filter active when switching to markdown view
-            // so users can see filtered markdown output
         };
 
         const exportMarkdown = (useFilteredNodes = false) => {
             const markdown = generateMarkdown(useFilteredNodes);
             
-            // Create a blob and download
             const blob = new Blob([markdown], { type: 'text/markdown' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1474,7 +1786,15 @@
         };
 
         const clearAll = () => {
-            setNodes([]);
+            setTrees([{
+                id: 'main',
+                title: 'Main Tree',
+                nodes: [],
+                parentTreeId: null,
+                parentNodeId: null,
+                breadcrumb: []
+            }]);
+            setActiveTreeIndex(0);
             setCurrentIndentLevel(0);
             setSelectedNodeId(null);
             setFocusedNode(null);
@@ -1482,8 +1802,7 @@
         };
 
         const manualSave = () => {
-            saveToStorage(nodes);
-            // Show brief feedback
+            saveToStorage(trees);
             const btn = document.querySelector('.save-btn');
             if (btn) {
                 const originalText = btn.textContent;
@@ -1494,21 +1813,52 @@
             }
         };
 
-        // Filter functions
-        const getBacklinksForNode = (nodeId) => {
+        const getBacklinksForNode = (nodeId, nodesToSearch = null) => {
+            const nodes = nodesToSearch || getCurrentNodes();
             return nodes.filter(node => node.linkedNodeId === nodeId);
         };
 
-        const getFilteredNodes = () => {
+        const getFilteredNodes = (nodesToFilter = null) => {
+            const nodes = nodesToFilter || getCurrentNodes();
             switch (currentFilter) {
                 case 'tasks':
                     return nodes.filter(node => node.isTask);
                 case 'notes':
                     return nodes.filter(node => node.note && node.note.trim());
                 case 'linked':
-                    return nodes.filter(node => node.linkedNodeId || getBacklinksForNode(node.id).length > 0);
+                    return nodes.filter(node => node.linkedNodeId || getBacklinksForNode(node.id, nodes).length > 0);
                 default:
                     return nodes;
+            }
+        };
+
+        const selectedNode = selectedNodeId ? getCurrentNodes().find(node => node.id === selectedNodeId) : null;
+        const currentNodes = getCurrentNodes();
+        const filteredNodes = getFilteredNodes();
+
+        const handleBackgroundClick = (e) => {
+            if (e.target.classList.contains('app') || 
+                e.target.classList.contains('main-content') || 
+                e.target.classList.contains('trees-container') ||
+                e.target.classList.contains('tree-content') ||
+                e.target.classList.contains('nodes-container')) {
+                
+                if (selectedNodeId) {
+                    setSelectedNodeId(null);
+                    if (currentNodes.length > 0) {
+                        setCurrentIndentLevel(currentNodes[currentNodes.length - 1].level);
+                    } else {
+                        setCurrentIndentLevel(0);
+                    }
+                }
+                setIsInputFocused(false);
+                setShowThemeDropdown(false);
+                setShowFilterDropdown(false);
+                
+                // Cancel editing when clicking outside
+                if (editingNodeId) {
+                    setEditingNodeId(null);
+                }
             }
         };
 
@@ -1519,30 +1869,6 @@
             { key: 'linked', label: 'Linked', icon: '○—○' }
         ];
 
-        const selectedNode = selectedNodeId ? nodes.find(node => node.id === selectedNodeId) : null;
-
-        // Handle clicking outside to deselect
-        const handleBackgroundClick = (e) => {
-            // Only deselect if clicking on the main app background, not on nodes or UI elements
-            if (e.target.classList.contains('app') || 
-                e.target.classList.contains('main-content') || 
-                e.target.classList.contains('nodes-container')) {
-                
-                if (selectedNodeId) {
-                    setSelectedNodeId(null);
-                    // Reset indent level
-                    if (nodes.length > 0) {
-                        setCurrentIndentLevel(nodes[nodes.length - 1].level);
-                    } else {
-                        setCurrentIndentLevel(0);
-                    }
-                }
-                setIsInputFocused(false);
-                setShowThemeDropdown(false);
-                setShowFilterDropdown(false);
-            }
-        };
-
         return (
             <div 
                 className="app" 
@@ -1552,103 +1878,164 @@
                 }}
                 onClick={handleBackgroundClick}
             >
-                {/* Header */}
                 <div className="header" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <h1 style={{ color: theme.text }}>Tree-e</h1>
-                        {currentFilter !== 'all' && (
-                            <span style={{ 
-                                fontSize: 'clamp(0.625rem, 2.5vw, 0.75rem)', 
-                                color: theme.text + '99',
-                                background: theme.border,
-                                padding: '0.125rem 0.375rem',
-                                borderRadius: '4px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.25rem'
-                            }}>
-                                {filterOptions.find(f => f.key === currentFilter)?.icon}
-                                {filterOptions.find(f => f.key === currentFilter)?.label}
-                            </span>
-                        )}
+                    <div className="header-main">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <h1 style={{ color: theme.text }}>Tree-e</h1>
+                            {currentFilter !== 'all' && (
+                                <span style={{ 
+                                    fontSize: 'clamp(0.625rem, 2.5vw, 0.75rem)', 
+                                    color: theme.text + '99',
+                                    background: theme.border,
+                                    padding: '0.125rem 0.375rem',
+                                    borderRadius: '4px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.25rem'
+                                }}>
+                                    {filterOptions.find(f => f.key === currentFilter)?.icon}
+                                    {filterOptions.find(f => f.key === currentFilter)?.label}
+                                </span>
+                            )}
+                            {trees.length > 1 && (
+                                <span style={{ 
+                                    fontSize: 'clamp(0.625rem, 2.5vw, 0.75rem)', 
+                                    color: trees.length >= 5 ? 'white' : theme.text + '99',
+                                    background: trees.length >= 5 ? '#ef4444' : theme.border,
+                                    padding: '0.125rem 0.375rem',
+                                    borderRadius: '4px'
+                                }}>
+                                    {trees.length}/5 trees
+                                </span>
+                            )}
+                        </div>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(0.5rem, 2vw, 0.75rem)' }}>
+                            {/* Mobile tree navigation */}
+                            {isMobile && trees.length > 1 && (
+                                <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                                    <button
+                                        className="tree-nav-btn"
+                                        onClick={() => setActiveTreeIndex(Math.max(0, activeTreeIndex - 1))}
+                                        disabled={activeTreeIndex === 0}
+                                        style={{
+                                            borderColor: theme.border,
+                                            color: theme.text,
+                                            background: 'transparent'
+                                        }}
+                                    >
+                                        ‹
+                                    </button>
+                                    <span style={{ 
+                                        fontSize: 'clamp(0.625rem, 2.5vw, 0.75rem)',
+                                        color: theme.text,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        padding: '0 0.25rem'
+                                    }}>
+                                        {activeTreeIndex + 1}/{trees.length}
+                                    </span>
+                                    <button
+                                        className="tree-nav-btn"
+                                        onClick={() => setActiveTreeIndex(Math.min(trees.length - 1, activeTreeIndex + 1))}
+                                        disabled={activeTreeIndex === trees.length - 1}
+                                        style={{
+                                            borderColor: theme.border,
+                                            color: theme.text,
+                                            background: 'transparent'
+                                        }}
+                                    >
+                                        ›
+                                    </button>
+                                </div>
+                            )}
+                            
+                            <div className="header-controls">
+                                <FilterDropdown
+                                    currentFilter={currentFilter}
+                                    onFilterChange={setCurrentFilter}
+                                    isOpen={showFilterDropdown}
+                                    onToggle={(e) => {
+                                        if (e) e.stopPropagation();
+                                        setShowFilterDropdown(!showFilterDropdown);
+                                    }}
+                                    theme={theme}
+                                    filterOptions={filterOptions}
+                                />
+                                
+                                <button
+                                    className="control-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowAbout(true);
+                                    }}
+                                    style={{
+                                        backgroundColor: getColorForLevel(theme, 0),
+                                        borderColor: theme.border,
+                                        color: theme.text
+                                    }}
+                                >
+                                    ◯
+                                </button>
+                                
+                                <button
+                                    className="control-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleMarkdownView();
+                                    }}
+                                    disabled={trees.length === 0 || trees.every(tree => tree.nodes.length === 0)}
+                                    style={{
+                                        backgroundColor: showMarkdownView ? theme.text : getColorForLevel(theme, 0),
+                                        borderColor: theme.border,
+                                        color: showMarkdownView ? theme.background : theme.text
+                                    }}
+                                >
+                                    {showMarkdownView ? '◀' : '▶'}
+                                </button>
+                                
+                                <button
+                                    className="control-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (trees.length > 0 && trees.some(tree => tree.nodes.length > 0)) {
+                                            setShowClearConfirm(true);
+                                        }
+                                    }}
+                                    disabled={trees.length === 0 || trees.every(tree => tree.nodes.length === 0)}
+                                    style={{
+                                        backgroundColor: getColorForLevel(theme, 0),
+                                        borderColor: theme.border,
+                                        color: theme.text
+                                    }}
+                                >
+                                    ╳
+                                </button>
+                                
+                                <ThemeDropdown
+                                    currentTheme={currentTheme}
+                                    onThemeChange={setCurrentTheme}
+                                    isOpen={showThemeDropdown}
+                                    onToggle={(e) => {
+                                        if (e) e.stopPropagation();
+                                        setShowThemeDropdown(!showThemeDropdown);
+                                    }}
+                                    theme={theme}
+                                />
+                            </div>
+                        </div>
                     </div>
                     
-                    <div className="header-controls">
-                        <FilterDropdown
-                            currentFilter={currentFilter}
-                            onFilterChange={setCurrentFilter}
-                            isOpen={showFilterDropdown}
-                            onToggle={(e) => {
-                                if (e) e.stopPropagation();
-                                setShowFilterDropdown(!showFilterDropdown);
-                            }}
-                            theme={theme}
-                            filterOptions={filterOptions}
-                        />
-                        
-                        <button
-                            className="control-btn"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowAbout(true);
-                            }}
-                            style={{
-                                backgroundColor: getColorForLevel(theme, 0),
-                                borderColor: theme.border,
-                                color: theme.text
-                            }}
-                        >
-                            ◯
-                        </button>
-                        
-                        <button
-                            className="control-btn"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                toggleMarkdownView();
-                            }}
-                            disabled={nodes.length === 0}
-                            style={{
-                                backgroundColor: showMarkdownView ? theme.text : getColorForLevel(theme, 0),
-                                borderColor: theme.border,
-                                color: showMarkdownView ? theme.background : theme.text
-                            }}
-                        >
-                            {showMarkdownView ? '◀' : '▶'}
-                        </button>
-                        
-                        <button
-                            className="control-btn"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (nodes.length > 0) {
-                                    setShowClearConfirm(true);
-                                }
-                            }}
-                            disabled={nodes.length === 0}
-                            style={{
-                                backgroundColor: getColorForLevel(theme, 0),
-                                borderColor: theme.border,
-                                color: theme.text
-                            }}
-                        >
-                            ╳
-                        </button>
-                        
-                        <ThemeDropdown
-                            currentTheme={currentTheme}
-                            onThemeChange={setCurrentTheme}
-                            isOpen={showThemeDropdown}
-                            onToggle={(e) => {
-                                if (e) e.stopPropagation();
-                                setShowThemeDropdown(!showThemeDropdown);
-                            }}
-                            theme={theme}
-                        />
-                    </div>
+                    {/* Breadcrumb navigation - only show when in branched tree and not main */}
+                    {trees.length > 0 && trees[activeTreeIndex]?.breadcrumb?.length > 0 && trees[activeTreeIndex]?.id !== 'main' && (
+                        <div className="header-breadcrumb">
+                            <div className="header-breadcrumb-text" style={{ color: theme.text }}>
+                                {[...trees[activeTreeIndex].breadcrumb, trees[activeTreeIndex].title].join(' / ')}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                {/* Main Content - Conditional Tree/Markdown View */}
                 {showMarkdownView ? (
                     <MarkdownView 
                         markdown={generateMarkdown(currentFilter !== 'all')} 
@@ -1657,65 +2044,97 @@
                     />
                 ) : (
                     <div className="main-content">
-                        <div className="nodes-container" ref={nodesContainerRef}>
-                            {getFilteredNodes().length === 0 && nodes.length > 0 && currentFilter !== 'all' ? (
-                                <div className="empty-state">
-                                    <div className="empty-icon">{filterOptions.find(f => f.key === currentFilter)?.icon}</div>
-                                    <div className="empty-title">No {filterOptions.find(f => f.key === currentFilter)?.label.toLowerCase()} found</div>
-                                    <div className="empty-desc">
-                                        Try a different filter or add some {currentFilter === 'tasks' ? 'task nodes' : currentFilter === 'notes' ? 'notes to your nodes' : 'links between nodes'}.
+                        <div className={`trees-container ${isMobile ? 'mobile' : ''}`}>
+                            {trees.map((tree, treeIndex) => (
+                                <div 
+                                    key={tree.id} 
+                                    className={`tree-pane ${isMobile ? `mobile ${treeIndex !== activeTreeIndex ? 'hidden' : ''}` : ''}`}
+                                >
+                                    <div className="tree-content">
+                                        <div className="nodes-container" ref={treeIndex === activeTreeIndex ? nodesContainerRef : null}>
+                                            {getFilteredNodes(tree.nodes).length === 0 && tree.nodes.length > 0 && currentFilter !== 'all' ? (
+                                                <div className="empty-state">
+                                                    <div className="empty-icon">{filterOptions.find(f => f.key === currentFilter)?.icon}</div>
+                                                    <div className="empty-title">No {filterOptions.find(f => f.key === currentFilter)?.label.toLowerCase()} found</div>
+                                                    <div className="empty-desc">
+                                                        Try a different filter or add some {currentFilter === 'tasks' ? 'task nodes' : currentFilter === 'notes' ? 'notes to your nodes' : 'links between nodes'}.
+                                                    </div>
+                                                </div>
+                                            ) : getFilteredNodes(tree.nodes).length === 0 ? (
+                                                <div className="empty-state">
+                                                    <div className="empty-icon">🌱</div>
+                                                    <div className="empty-title">Empty tree</div>
+                                                    <div className="empty-desc">
+                                                        {tree.id === 'main' ? 'Start your Tree-e by adding your first thought below.' : 'This branch is ready for new ideas.'}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                getFilteredNodes(tree.nodes).map(node => (
+                                                    <div key={node.id} data-node-id={node.id}>
+                                                        <NodeComponent
+                                                            node={node}
+                                                            theme={theme}
+                                                            isSelected={selectedNodeId === node.id && treeIndex === activeTreeIndex}
+                                                            backlinks={getBacklinksForNode(node.id, tree.nodes)}
+                                                            treesLength={trees.length}
+                                                            editingNodeId={editingNodeId}
+                                                            onTap={(e) => {
+                                                                e.stopPropagation();
+                                                                
+                                                                if (isMobile) {
+                                                                    setActiveTreeIndex(treeIndex);
+                                                                }
+                                                                
+                                                                if (selectedNodeId === node.id && activeTreeIndex === treeIndex) {
+                                                                    setSelectedNodeId(null);
+                                                                    if (tree.nodes.length > 0) {
+                                                                        setCurrentIndentLevel(tree.nodes[tree.nodes.length - 1].level);
+                                                                    } else {
+                                                                        setCurrentIndentLevel(0);
+                                                                    }
+                                                                } else {
+                                                                    setSelectedNodeId(node.id);
+                                                                    setSelectedTreeIndex(treeIndex);
+                                                                    setActiveTreeIndex(treeIndex);
+                                                                    setCurrentIndentLevel(node.level + 1);
+                                                                    
+                                                                    setTimeout(() => {
+                                                                        const element = document.querySelector(`[data-node-id="${node.id}"]`);
+                                                                        if (element) {
+                                                                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                                        }
+                                                                    }, 100);
+                                                                }
+                                                            }}
+                                                            onIndent={() => indentNode(node.id)}
+                                                            onOutdent={() => outdentNode(node.id)}
+                                                            onDelete={() => deleteNode(node.id)}
+                                                            onFocus={() => focusNode(node.id)}
+                                                            onToggleTask={() => toggleTask(node.id)}
+                                                            onToggleComplete={() => toggleComplete(node.id)}
+                                                            onLink={() => startLinking(node.id)}
+                                                            onUnlink={() => unlinkNode(node.id)}
+                                                            onJumpToLink={() => jumpToLinkedNode(node.id)}
+                                                            onBranchOut={() => {
+                                                                if (trees.length < 5) {
+                                                                    branchOut(node.id);
+                                                                }
+                                                            }}
+                                                            onEdit={() => editNode(node.id)}
+                                                            onSaveEdit={saveEditNode}
+                                                            onCancelEdit={cancelEditNode}
+                                                        />
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            ) : (
-                                getFilteredNodes().map(node => (
-                                    <div key={node.id} data-node-id={node.id}>
-                                        <NodeComponent
-                                            node={node}
-                                            theme={theme}
-                                            isSelected={selectedNodeId === node.id}
-                                            backlinks={getBacklinksForNode(node.id)}
-                                            onTap={(e) => {
-                                                e.stopPropagation();
-                                                
-                                                if (selectedNodeId === node.id) {
-                                                    setSelectedNodeId(null);
-                                                    // Reset to the last node's level when deselecting
-                                                    if (nodes.length > 0) {
-                                                        setCurrentIndentLevel(nodes[nodes.length - 1].level);
-                                                    } else {
-                                                        setCurrentIndentLevel(0);
-                                                    }
-                                                } else {
-                                                    setSelectedNodeId(node.id);
-                                                    setCurrentIndentLevel(node.level + 1);
-                                                    
-                                                    // Scroll to selected node
-                                                    setTimeout(() => {
-                                                        const element = document.querySelector(`[data-node-id="${node.id}"]`);
-                                                        if (element) {
-                                                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                                        }
-                                                    }, 100);
-                                                }
-                                            }}
-                                            onIndent={() => indentNode(node.id)}
-                                            onOutdent={() => outdentNode(node.id)}
-                                            onDelete={() => deleteNode(node.id)}
-                                            onFocus={() => focusNode(node.id)}
-                                            onToggleTask={() => toggleTask(node.id)}
-                                            onToggleComplete={() => toggleComplete(node.id)}
-                                            onLink={() => startLinking(node.id)}
-                                            onUnlink={() => unlinkNode(node.id)}
-                                            onJumpToLink={() => jumpToLinkedNode(node.id)}
-                                        />
-                                    </div>
-                                ))
-                            )}
+                            ))}
                         </div>
                     </div>
                 )}
 
-                {/* Input Area - Fixed at Bottom (only show in tree view) */}
                 {!showMarkdownView && (
                     <div className="input-area" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
                         {isInputFocused && (
@@ -1783,7 +2202,11 @@
                                 onFocus={() => {
                                     setIsInputFocused(true);
                                 }}
-                                placeholder="Start your Tree-e..."
+                                placeholder={trees.length > 0 ? (
+                                    trees[activeTreeIndex]?.breadcrumb?.length > 0 
+                                        ? `Add to ${trees[activeTreeIndex].breadcrumb[trees[activeTreeIndex].breadcrumb.length - 1]}...`
+                                        : "Add to tree..."
+                                ) : "Start your Tree-e..."}
                                 style={{ color: theme.text }}
                             />
                         </div>
@@ -1801,19 +2224,19 @@
                             </div>
                         )}
                         
-                        {nodes.length === 0 ? (
+                        {trees.length === 0 || (trees.length === 1 && currentNodes.length === 0) ? (
                             <div className="instructions" style={{ color: theme.text }}>
                                 Swipe right to indent • Swipe left to outdent • Swipe on input box to adjust level • Return to add node • Link to connect thoughts
                             </div>
                         ) : currentFilter !== 'all' && (
                             <div className="instructions" style={{ color: theme.text }}>
-                                Showing {getFilteredNodes().length} of {nodes.length} nodes • Filter: {filterOptions.find(f => f.key === currentFilter)?.label}
+                                Showing {filteredNodes.length} of {currentNodes.length} nodes • Filter: {filterOptions.find(f => f.key === currentFilter)?.label}
+                                {trees[activeTreeIndex]?.breadcrumb?.length > 0 && ` • Path: ${[...trees[activeTreeIndex].breadcrumb, trees[activeTreeIndex].title].join(' / ')}`}
                             </div>
                         )}
                     </div>
                 )}
 
-                {/* Modals */}
                 <AboutView
                     isOpen={showAbout}
                     onClose={() => setShowAbout(false)}
@@ -1834,29 +2257,37 @@
                         setShowLinkPicker(false);
                         setLinkingFromNodeId(null);
                     }}
-                    nodes={nodes}
+                    nodes={getCurrentNodes()}
                     fromNodeId={linkingFromNodeId}
                     theme={theme}
                     onLink={linkNodes}
                 />
 
-                {/* Clear Confirmation */}
                 {showClearConfirm && (
                     <Modal 
                         isOpen={showClearConfirm} 
                         onClose={() => setShowClearConfirm(false)} 
-                        title="Clear your garden?" 
+                        title={trees.length > 1 ? "Clear your entire forest?" : "Clear your garden?"} 
                         theme={theme}
                     >
                         <div style={{ marginBottom: '16px' }}>
-                            {currentTheme === 'espresso' ? 
-                                "This will empty your cup of all brewing thoughts. A fresh roast awaits your inspiration." :
-                            currentTheme === 'alienGuts' ?
-                                "This will dissolve all your otherworldly thoughts back into the cosmic void. New alien wisdom awaits your discovery." :
-                            currentTheme === 'neon' ?
-                                "This will power down all your electric thoughts. A fresh surge of inspiration awaits." :
-                                "This will remove all your carefully cultivated thoughts. They cannot be replanted once cleared."
-                            }
+                            {trees.length > 1 ? (
+                                currentTheme === 'espresso' ? 
+                                    "This will empty all your cups and clear every tree. A fresh forest of inspiration awaits." :
+                                currentTheme === 'alienGuts' ?
+                                    "This will dissolve your entire thought ecosystem back into the cosmic void. New alien wisdom awaits discovery across the multiverse." :
+                                currentTheme === 'neon' ?
+                                    "This will power down your entire electric network. A fresh surge of connected inspiration awaits." :
+                                    "This will remove all your trees and every carefully cultivated thought. Your entire forest cannot be replanted once cleared."
+                            ) : (
+                                currentTheme === 'espresso' ? 
+                                    "This will empty your cup of all brewing thoughts. A fresh roast awaits your inspiration." :
+                                currentTheme === 'alienGuts' ?
+                                    "This will dissolve all your otherworldly thoughts back into the cosmic void. New alien wisdom awaits your discovery." :
+                                currentTheme === 'neon' ?
+                                    "This will power down all your electric thoughts. A fresh surge of inspiration awaits." :
+                                    "This will remove all your carefully cultivated thoughts. They cannot be replanted once cleared."
+                            )}
                         </div>
                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                             <button
@@ -1892,10 +2323,8 @@
         );
     };
 
-    // Render the app
     ReactDOM.render(<TreeApp />, document.getElementById('root'));
 
-    // Service Worker Registration for PWA
     if ('serviceWorker' in navigator) {
         const swCode = `
             const CACHE_NAME = 'tree-e-v1';
@@ -1936,7 +2365,6 @@
             });
     }
 </script>
-
 
 </body>
 </html>
