@@ -375,17 +375,6 @@
         opacity: 0.6;
     }
     
-    .context-indicator {
-        margin-top: 12px;
-        padding: 8px 16px;
-        border: 1px solid;
-        border-radius: 8px;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 12px;
-        opacity: 0.9;
-        text-align: center;
-    }
-    
     .instructions {
         margin-top: 12px;
         font-family: 'JetBrains Mono', monospace;
@@ -925,13 +914,7 @@
         const editInputRef = useRef(null);
 
         const isEditing = editingNodeId === node.id;
-        const currentTree = allTrees[currentTreeIndex];
-        
-        // Only consider a node "branched out" if we're on the tree it was branched FROM
-        const isBranchedOut = allTrees.some(tree => 
-            tree.parentNodeId === node.id && 
-            tree.parentTreeId === currentTree.id
-        );
+        const isBranchedOut = allTrees.some(tree => tree.parentNodeId === node.id && tree.parentTreeId === allTrees[currentTreeIndex].id);
 
         useEffect(() => {
             if (isEditing && editInputRef.current) {
@@ -1025,7 +1008,8 @@
                             <div className="node-icons" style={{ color: theme.text + '99' }}>
                                 {node.isTask && <span>□</span>}
                                 {node.note && node.note.trim() && <span>◊</span>}
-                                {isBranchedOut && (
+                                {/* Only show the branch link icon if we're in the PARENT tree, not the branched tree itself */}
+                                {isBranchedOut && currentTreeIndex === allTrees.findIndex(tree => tree.id === allTrees.find(t => t.parentNodeId === node.id)?.parentTreeId) && (
                                     <span 
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -1610,11 +1594,11 @@
                 ? selectedNode.content.substring(0, 17) + '...'
                 : selectedNode.content;
 
-            // Create breadcrumb path - always include Main Tree as the root
+            // Create breadcrumb path
             const newBreadcrumb = [];
             if (currentTree.id === 'main') {
-                // If branching from main tree, start with Main Tree
-                newBreadcrumb.push('Main Tree');
+                // If branching from main tree, don't add "Main Tree" to breadcrumb 
+                // since it's already shown separately in the breadcrumb display
             } else {
                 // If branching from another tree, include its full breadcrumb
                 newBreadcrumb.push(...currentTree.breadcrumb);
@@ -2281,19 +2265,6 @@
                                 style={{ color: theme.text }}
                             />
                         </div>
-                        
-                        {selectedNode && (
-                            <div 
-                                className="context-indicator"
-                                style={{
-                                    backgroundColor: getColorForLevel(theme, 0),
-                                    borderColor: theme.border,
-                                    color: theme.text
-                                }}
-                            >
-                                ↳ Next node will be added as child of: "{selectedNode.content}" (Level {selectedNode.level + 1})
-                            </div>
-                        )}
                         
                         {trees.length === 0 || (trees.length === 1 && currentNodes.length === 0) ? (
                             <div className="instructions" style={{ color: theme.text }}>
