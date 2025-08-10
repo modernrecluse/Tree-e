@@ -2165,34 +2165,35 @@
                                                             onTap={(e) => {
                                                                 e.stopPropagation();
                                                                 const isBranchedTree = !!trees[treeIndex].parentTreeId;
-                                                                // On mobile, do NOT navigate when in a branched tree
-                                                                if (isMobile && !isBranchedTree && treeIndex !== activeTreeIndex) {
-                                                                    setActiveTreeIndex(treeIndex);
-                                                                }
-                                                                // Prevent navigation to main tree when in a branched tree
-                                                                if (isMobile && isBranchedTree) {
-                                                                    // Only select/deselect node, do not change activeTreeIndex
-                                                                    if (selectedNodeId === node.id && activeTreeIndex === treeIndex) {
-                                                                        setSelectedNodeId(null);
-                                                                        if (tree.nodes.length > 0) {
-                                                                            setCurrentIndentLevel(tree.nodes[tree.nodes.length - 1].level);
-                                                                        } else {
-                                                                            setCurrentIndentLevel(0);
-                                                                        }
-                                                                    } else {
-                                                                        setSelectedNodeId(node.id);
-                                                                        setSelectedTreeIndex(treeIndex);
-                                                                        setCurrentIndentLevel(node.level + 1);
-                                                                        setTimeout(() => {
-                                                                            const element = document.querySelector(`[data-node-id="${node.id}"]`);
-                                                                            if (element) {
-                                                                                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                                                            }
-                                                                        }, 100);
+                                                                if (isMobile) {
+                                                                    // On mobile, only navigate if NOT in a branched tree and not already active
+                                                                    if (!isBranchedTree && treeIndex !== activeTreeIndex) {
+                                                                        setActiveTreeIndex(treeIndex);
                                                                     }
-                                                                    return;
+                                                                    // In a branched tree, just select/deselect node, do not navigate
+                                                                    if (isBranchedTree) {
+                                                                        if (selectedNodeId === node.id && activeTreeIndex === treeIndex) {
+                                                                            setSelectedNodeId(null);
+                                                                            if (tree.nodes.length > 0) {
+                                                                                setCurrentIndentLevel(tree.nodes[tree.nodes.length - 1].level);
+                                                                            } else {
+                                                                                setCurrentIndentLevel(0);
+                                                                            }
+                                                                        } else {
+                                                                            setSelectedNodeId(node.id);
+                                                                            setSelectedTreeIndex(treeIndex);
+                                                                            setCurrentIndentLevel(node.level + 1);
+                                                                            setTimeout(() => {
+                                                                                const element = document.querySelector(`[data-node-id="${node.id}"]`);
+                                                                                if (element) {
+                                                                                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                                                }
+                                                                            }, 100);
+                                                                        }
+                                                                        return;
+                                                                    }
                                                                 }
-                                                                // Default behavior for desktop or main tree
+                                                                // Desktop or main tree: always allow navigation
                                                                 if (selectedNodeId === node.id && activeTreeIndex === treeIndex) {
                                                                     setSelectedNodeId(null);
                                                                     if (tree.nodes.length > 0) {
@@ -2203,7 +2204,7 @@
                                                                 } else {
                                                                     setSelectedNodeId(node.id);
                                                                     setSelectedTreeIndex(treeIndex);
-                                                                    if (!isBranchedTree) setActiveTreeIndex(treeIndex);
+                                                                    setActiveTreeIndex(treeIndex);
                                                                     setCurrentIndentLevel(node.level + 1);
                                                                     setTimeout(() => {
                                                                         const element = document.querySelector(`[data-node-id="${node.id}"]`);
