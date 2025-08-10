@@ -925,7 +925,13 @@
         const editInputRef = useRef(null);
 
         const isEditing = editingNodeId === node.id;
-        const isBranchedOut = allTrees.some(tree => tree.parentNodeId === node.id && tree.parentTreeId === allTrees[currentTreeIndex].id);
+        const currentTree = allTrees[currentTreeIndex];
+        
+        // Only consider a node "branched out" if we're on the tree it was branched FROM
+        const isBranchedOut = allTrees.some(tree => 
+            tree.parentNodeId === node.id && 
+            tree.parentTreeId === currentTree.id
+        );
 
         useEffect(() => {
             if (isEditing && editInputRef.current) {
