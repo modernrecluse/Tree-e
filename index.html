@@ -914,9 +914,7 @@
         const editInputRef = useRef(null);
 
         const isEditing = editingNodeId === node.id;
-    const isBranchedOut = allTrees.some(tree => tree.parentNodeId === node.id && tree.parentTreeId === allTrees[currentTreeIndex].id);
-    // Determine if this is a branched tree (not the main/parent tree)
-    const isBranchedTree = !!allTrees[currentTreeIndex].parentTreeId;
+        const isBranchedOut = allTrees.some(tree => tree.parentNodeId === node.id && tree.parentTreeId === allTrees[currentTreeIndex].id);
 
         useEffect(() => {
             if (isEditing && editInputRef.current) {
@@ -1011,11 +1009,11 @@
                                 {node.isTask && <span>□</span>}
                                 {node.note && node.note.trim() && <span>◊</span>}
                                 {/* Only show the branch link icon if we're in the PARENT tree, not the branched tree itself */}
-                                {isBranchedOut && !isBranchedTree && (
+                                {isBranchedOut && currentTreeIndex === allTrees.findIndex(tree => tree.id === allTrees.find(t => t.parentNodeId === node.id)?.parentTreeId) && (
                                     <span 
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            if (onJumpToLinkedTree) onJumpToLinkedTree();
+                                            onJumpToLinkedTree();
                                         }}
                                         style={{ color: '#3b82f6', cursor: 'pointer' }}
                                         title="Jump to branched tree"
@@ -1202,7 +1200,7 @@
                     <div className="about-section">
                         <h4 className="about-title">Getting Started</h4>
                         <div className="getting-started-list">
-                            <div>• Start typing at the {'>'} prompt</div>
+                            <div>• Start typing at the > prompt</div>
                             <div>• Tab to indent, Shift+Tab to outdent</div>
                             <div>• Swipe on input box to adjust indent level</div>
                             <div>• Notice how each level gets its own color</div>
@@ -1538,12 +1536,8 @@
         };
 
         const jumpToLinkedNode = (nodeId) => {
-            // Only allow navigation if we're in a parent tree (not in a branched tree)
-            const currentTree = trees[activeTreeIndex];
-            if (currentTree && !currentTree.parentTreeId) {
-                // Check if this node has a branched tree
-                focusLinkedTree(nodeId);
-            }
+            // Check if this node has a branched tree
+            focusLinkedTree(nodeId);
         };
 
         const editNode = (nodeId) => {
@@ -2164,36 +2158,11 @@
                                                             currentTreeIndex={treeIndex}
                                                             onTap={(e) => {
                                                                 e.stopPropagation();
-                                                                const isBranchedTree = !!trees[treeIndex].parentTreeId;
+                                                                
                                                                 if (isMobile) {
-                                                                    // On mobile, only navigate if NOT in a branched tree and not already active
-                                                                    if (!isBranchedTree && treeIndex !== activeTreeIndex) {
-                                                                        setActiveTreeIndex(treeIndex);
-                                                                    }
-                                                                    // In a branched tree, just select/deselect node, do not navigate
-                                                                    if (isBranchedTree) {
-                                                                        if (selectedNodeId === node.id && activeTreeIndex === treeIndex) {
-                                                                            setSelectedNodeId(null);
-                                                                            if (tree.nodes.length > 0) {
-                                                                                setCurrentIndentLevel(tree.nodes[tree.nodes.length - 1].level);
-                                                                            } else {
-                                                                                setCurrentIndentLevel(0);
-                                                                            }
-                                                                        } else {
-                                                                            setSelectedNodeId(node.id);
-                                                                            setSelectedTreeIndex(treeIndex);
-                                                                            setCurrentIndentLevel(node.level + 1);
-                                                                            setTimeout(() => {
-                                                                                const element = document.querySelector(`[data-node-id="${node.id}"]`);
-                                                                                if (element) {
-                                                                                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                                                                }
-                                                                            }, 100);
-                                                                        }
-                                                                        return;
-                                                                    }
+                                                                    setActiveTreeIndex(treeIndex);
                                                                 }
-                                                                // Desktop or main tree: always allow navigation
+                                                                
                                                                 if (selectedNodeId === node.id && activeTreeIndex === treeIndex) {
                                                                     setSelectedNodeId(null);
                                                                     if (tree.nodes.length > 0) {
@@ -2206,6 +2175,7 @@
                                                                     setSelectedTreeIndex(treeIndex);
                                                                     setActiveTreeIndex(treeIndex);
                                                                     setCurrentIndentLevel(node.level + 1);
+                                                                    
                                                                     setTimeout(() => {
                                                                         const element = document.querySelector(`[data-node-id="${node.id}"]`);
                                                                         if (element) {
@@ -2220,10 +2190,7 @@
                                                             onFocus={() => focusNode(node.id)}
                                                             onToggleTask={() => toggleTask(node.id)}
                                                             onToggleComplete={() => toggleComplete(node.id)}
-                                                            // Only pass onJumpToLinkedTree in parent tree, never in branched tree
-                                                            onJumpToLinkedTree={
-                                                                trees[treeIndex].parentTreeId ? undefined : () => jumpToLinkedNode(node.id)
-                                                            }
+                                                            onJumpToLinkedTree={() => jumpToLinkedNode(node.id)}
                                                             onBranchOut={() => {
                                                                 if (trees.length < 5) {
                                                                     branchOut(node.id);
@@ -2260,7 +2227,7 @@
                             {...inputSwipeHandlers}
                         >
                             <div className="input-prompt" style={{ color: theme.prompt }}>
-                                {'>'}
+                                >
                             </div>
                             
                             {currentIndentLevel > 0 && (
