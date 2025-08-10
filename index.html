@@ -338,35 +338,6 @@
         background: inherit;
     }
     
-    .indent-controls {
-        display: flex;
-        gap: 16px;
-        justify-content: center;
-        margin-bottom: 12px;
-    }
-    
-    .indent-btn {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        padding: 8px 16px;
-        border: 1px solid;
-        border-radius: 8px;
-        font-size: 14px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    
-    .indent-btn:hover {
-        transform: scale(1.05);
-    }
-    
-    .indent-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
-    }
-    
     .input-container {
         display: flex;
         align-items: center;
@@ -948,12 +919,13 @@
     };
 
     // Components
-    const NodeComponent = ({ node, theme, isSelected, backlinks = [], treesLength = 1, editingNodeId, onTap, onIndent, onOutdent, onDelete, onFocus, onToggleTask, onToggleComplete, onLink, onUnlink, onJumpToLink, onBranchOut, onEdit, onSaveEdit, onCancelEdit }) => {
+    const NodeComponent = ({ node, theme, isSelected, treesLength = 1, editingNodeId, allTrees, currentTreeIndex, onTap, onIndent, onOutdent, onDelete, onFocus, onToggleTask, onToggleComplete, onJumpToLinkedTree, onBranchOut, onEdit, onSaveEdit, onCancelEdit }) => {
         const swipeHandlers = useTouchHandler(onOutdent, onIndent);
         const [editText, setEditText] = useState(node.content);
         const editInputRef = useRef(null);
 
         const isEditing = editingNodeId === node.id;
+        const isBranchedOut = allTrees.some(tree => tree.parentNodeId === node.id && tree.parentTreeId === allTrees[currentTreeIndex].id);
 
         useEffect(() => {
             if (isEditing && editInputRef.current) {
@@ -998,7 +970,8 @@
                         style={{
                             backgroundColor: isSelected ? theme.border : getColorForLevel(theme, node.level),
                             borderColor: isSelected ? theme.text : theme.border,
-                            color: theme.text
+                            color: theme.text,
+                            opacity: isBranchedOut && !isEditing ? 0.7 : 1
                         }}
                         onClick={(e) => !isEditing && onTap(e)}
                         {...(!isEditing ? swipeHandlers : {})}
@@ -1046,24 +1019,16 @@
                             <div className="node-icons" style={{ color: theme.text + '99' }}>
                                 {node.isTask && <span>□</span>}
                                 {node.note && node.note.trim() && <span>◊</span>}
-                                {node.linkedNodeId && (
+                                {isBranchedOut && (
                                     <span 
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            onJumpToLink();
+                                            onJumpToLinkedTree();
                                         }}
                                         style={{ color: '#3b82f6', cursor: 'pointer' }}
-                                        title="Jumps to linked node"
+                                        title="Jump to branched tree"
                                     >
-                                        ↗
-                                    </span>
-                                )}
-                                {backlinks.length > 0 && (
-                                    <span 
-                                        style={{ color: '#8b5cf6', cursor: 'pointer' }}
-                                        title={`${backlinks.length} node${backlinks.length > 1 ? 's' : ''} link${backlinks.length > 1 ? '' : 's'} to this`}
-                                    >
-                                        ↙
+                                        ⫷
                                     </span>
                                 )}
                             </div>
@@ -1072,33 +1037,30 @@
                     
                     {isSelected && !isEditing && (
                         <div className="node-actions">
-                            <button className="action-btn edit" onClick={() => onEdit(node.id)} style={{ background: '#6366f1' }}>
-                                ✎ <span>Edit</span>
-                            </button>
+                            {!isBranchedOut && (
+                                <button className="action-btn edit" onClick={() => onEdit(node.id)} style={{ background: '#6366f1' }}>
+                                    ✎ <span>Edit</span>
+                                </button>
+                            )}
                             <button className="action-btn task" onClick={onToggleTask}>
                                 □ <span>{node.isTask ? 'Note' : 'Task'}</span>
                             </button>
                             <button className="action-btn focus" onClick={onFocus}>
                                 ◊ <span>Notes</span>
                             </button>
-                            {node.linkedNodeId ? (
-                                <button className="action-btn unlink" onClick={onUnlink}>
-                                    ⧉ <span>Unlink</span>
-                                </button>
-                            ) : (
-                                <button className="action-btn link" onClick={onLink}>
-                                    ○—○ <span>Link</span>
-                                </button>
-                            )}
                             <button 
                                 className="action-btn branch" 
                                 onClick={onBranchOut} 
-                                disabled={treesLength >= 5}
+                                disabled={treesLength >= 5 || isBranchedOut}
                                 style={{ 
-                                    background: treesLength >= 5 ? '#94a3b8' : '#10b981',
-                                    cursor: treesLength >= 5 ? 'not-allowed' : 'pointer'
+                                    background: (treesLength >= 5 || isBranchedOut) ? '#94a3b8' : '#10b981',
+                                    cursor: (treesLength >= 5 || isBranchedOut) ? 'not-allowed' : 'pointer'
                                 }}
-                                title={treesLength >= 5 ? 'Maximum 5 trees allowed' : 'Branch out to explore this thought'}
+                                title={
+                                    isBranchedOut ? 'Node already branched out' :
+                                    treesLength >= 5 ? 'Maximum 5 trees allowed' : 
+                                    'Branch out to explore this thought'
+                                }
                             >
                                 ⫷ <span>Branch</span>
                             </button>
@@ -1196,47 +1158,8 @@
     };
 
     const LinkPickerView = ({ isOpen, onClose, nodes, fromNodeId, theme, onLink }) => {
-        const availableNodes = nodes.filter(node => node.id !== fromNodeId);
-
-        return (
-            <Modal isOpen={isOpen} onClose={onClose} title="Link to Node" theme={theme}>
-                {availableNodes.length === 0 ? (
-                    <div className="empty-state">
-                        <div className="empty-icon">🔗</div>
-                        <div className="empty-title">No other nodes to link to</div>
-                        <div className="empty-desc">
-                            Create more nodes to build connections between your thoughts.
-                        </div>
-                    </div>
-                ) : (
-                    <div className="link-list">
-                        {availableNodes.map(node => (
-                            <button
-                                key={node.id}
-                                className="link-item"
-                                onClick={() => {
-                                    onLink(node.id);
-                                    onClose();
-                                }}
-                                style={{
-                                    backgroundColor: getColorForLevel(theme, node.level),
-                                    borderColor: theme.border,
-                                    color: theme.text
-                                }}
-                            >
-                                <div className="link-item-content">
-                                    <span style={{ fontFamily: 'JetBrains Mono, monospace' }}>
-                                        {'  '.repeat(node.level)}
-                                    </span>
-                                    <span>{node.content}</span>
-                                </div>
-                                <span className="link-chevron">→</span>
-                            </button>
-                        ))}
-                    </div>
-                )}
-            </Modal>
-        );
+        // Removed - no longer needed with new linking system
+        return null;
     };
 
     const AboutView = ({ isOpen, onClose, theme }) => {
@@ -1274,8 +1197,8 @@
                                 <div className="feature-desc">Convert any node to a task with completion tracking.</div>
                             </div>
                             <div className="feature-item">
-                                <div className="feature-title">Simple Linking:</div>
-                                <div className="feature-desc">Create connections between related thoughts with visual indicators.</div>
+                                <div className="feature-title">Tree-to-Tree Navigation:</div>
+                                <div className="feature-desc">Branch out from any node to explore it in detail. Original nodes show link indicators to jump between trees.</div>
                             </div>
                             <div className="feature-item">
                                 <div className="feature-title">Stunning Themes:</div>
@@ -1288,17 +1211,18 @@
                         <h4 className="about-title">Getting Started</h4>
                         <div className="getting-started-list">
                             <div>• Start typing at the > prompt</div>
-                            <div>• Swipe right to indent, left to outdent</div>
+                            <div>• Tab to indent, Shift+Tab to outdent</div>
                             <div>• Swipe on input box to adjust indent level</div>
                             <div>• Notice how each level gets its own color</div>
                             <div>• Tap nodes to access edit options</div>
                             <div>• Use Edit to modify node text inline</div>
                             <div>• Use Branch to explore thoughts in new trees</div>
+                            <div>• Click ⫷ on branched nodes to navigate back</div>
                             <div>• Use Notes to add detailed information</div>
-                            <div>• Use Link to connect related thoughts</div>
+                            <div>• Click breadcrumbs to navigate between trees</div>
+                            <div>• Click "✓ Close" to merge changes back</div>
                             <div>• Export button shares all trees as Markdown</div>
                             <div>• Your work auto-saves as you create</div>
-                            <div>• Navigate with breadcrumbs in the header</div>
                         </div>
                     </div>
                 </div>
@@ -1440,8 +1364,6 @@
         const [focusedNode, setFocusedNode] = useState(null);
         const [currentTheme, setCurrentTheme] = useState('matcha');
         const [showAbout, setShowAbout] = useState(false);
-        const [showLinkPicker, setShowLinkPicker] = useState(false);
-        const [linkingFromNodeId, setLinkingFromNodeId] = useState(null);
         const [showThemeDropdown, setShowThemeDropdown] = useState(false);
         const [isInputFocused, setIsInputFocused] = useState(false);
         const [showMarkdownView, setShowMarkdownView] = useState(false);
@@ -1612,44 +1534,29 @@
         };
 
         const startLinking = (nodeId) => {
-            setLinkingFromNodeId(nodeId);
-            setShowLinkPicker(true);
-            setSelectedNodeId(null);
+            // Removed - no longer needed
         };
 
         const linkNodes = (targetNodeId) => {
-            if (linkingFromNodeId) {
-                updateCurrentNodes(prevNodes => prevNodes.map(node =>
-                    node.id === linkingFromNodeId ? { ...node, linkedNodeId: targetNodeId } : node
-                ));
-            }
-            setShowLinkPicker(false);
-            setLinkingFromNodeId(null);
+            // Removed - no longer needed
         };
 
         const unlinkNode = (nodeId) => {
-            updateCurrentNodes(prevNodes => prevNodes.map(node =>
-                node.id === nodeId ? { ...node, linkedNodeId: null } : node
-            ));
-            setSelectedNodeId(null);
+            // Removed - no longer needed
         };
 
         const jumpToLinkedNode = (nodeId) => {
-            const nodes = getCurrentNodes();
-            const node = nodes.find(n => n.id === nodeId);
-            if (node?.linkedNodeId) {
-                setSelectedNodeId(node.linkedNodeId);
-                
-                setTimeout(() => {
-                    const element = document.querySelector(`[data-node-id="${node.linkedNodeId}"]`);
-                    if (element) {
-                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                }, 100);
-            }
+            // Check if this node has a branched tree
+            focusLinkedTree(nodeId);
         };
 
         const editNode = (nodeId) => {
+            // Check if this node has been branched out
+            const isBranchedOut = trees.some(tree => tree.parentNodeId === nodeId && tree.parentTreeId === trees[activeTreeIndex].id);
+            if (isBranchedOut) {
+                // Don't allow editing if node has been branched out
+                return;
+            }
             setEditingNodeId(nodeId);
             setSelectedNodeId(null);
         };
@@ -1697,16 +1604,21 @@
                 ? selectedNode.content.substring(0, 17) + '...'
                 : selectedNode.content;
 
-            // Create minimal breadcrumb
-            const newBreadcrumb = [...currentTree.breadcrumb];
-            if (currentTree.title !== 'Main Tree') {
+            // Create breadcrumb path - always include Main Tree as the root
+            const newBreadcrumb = [];
+            if (currentTree.id === 'main') {
+                // If branching from main tree, start with Main Tree
+                newBreadcrumb.push('Main Tree');
+            } else {
+                // If branching from another tree, include its full breadcrumb
+                newBreadcrumb.push(...currentTree.breadcrumb);
                 newBreadcrumb.push(currentTree.title);
             }
             
             // Keep breadcrumb concise for mobile
-            if (newBreadcrumb.length > 2) {
-                newBreadcrumb.splice(0, newBreadcrumb.length - 2);
-                newBreadcrumb[0] = '...' + newBreadcrumb[0];
+            if (newBreadcrumb.length > 3) {
+                newBreadcrumb.splice(1, newBreadcrumb.length - 3);
+                newBreadcrumb[1] = '...';
             }
 
             const newTree = {
@@ -1724,11 +1636,76 @@
             setCurrentIndentLevel(0);
         };
 
+        const closeTree = (treeIndex) => {
+            const treeToClose = trees[treeIndex];
+            if (!treeToClose.parentTreeId || !treeToClose.parentNodeId) return;
+
+            // Find parent tree
+            const parentTreeIndex = trees.findIndex(tree => tree.id === treeToClose.parentTreeId);
+            if (parentTreeIndex === -1) return;
+
+            // Merge changes back to parent tree
+            setTrees(prev => {
+                const newTrees = [...prev];
+                const parentTree = newTrees[parentTreeIndex];
+                const parentNodes = [...parentTree.nodes];
+                
+                // Find the original node that was branched out
+                const originalNodeIndex = parentNodes.findIndex(node => node.id === treeToClose.parentNodeId);
+                if (originalNodeIndex === -1) return newTrees;
+
+                const originalNode = parentNodes[originalNodeIndex];
+                
+                // Remove old children (everything after the original node with higher level)
+                let removeUntilIndex = parentNodes.length;
+                for (let i = originalNodeIndex + 1; i < parentNodes.length; i++) {
+                    if (parentNodes[i].level <= originalNode.level) {
+                        removeUntilIndex = i;
+                        break;
+                    }
+                }
+                
+                // Replace with updated nodes from branched tree
+                const updatedNodes = treeToClose.nodes.map(node => ({
+                    ...node,
+                    level: node.level + originalNode.level
+                }));
+
+                // Insert the updated nodes
+                parentNodes.splice(originalNodeIndex, removeUntilIndex - originalNodeIndex, ...updatedNodes);
+                
+                // Update parent tree
+                newTrees[parentTreeIndex] = {
+                    ...parentTree,
+                    nodes: parentNodes
+                };
+
+                // Remove the closed tree
+                newTrees.splice(treeIndex, 1);
+
+                return newTrees;
+            });
+
+            // Adjust active tree index if necessary
+            if (activeTreeIndex >= treeIndex) {
+                setActiveTreeIndex(Math.max(0, activeTreeIndex - 1));
+            }
+        };
+
+        const focusLinkedTree = (nodeId) => {
+            // Find tree that was branched from this node
+            const linkedTreeIndex = trees.findIndex(tree => tree.parentNodeId === nodeId);
+            if (linkedTreeIndex !== -1) {
+                setActiveTreeIndex(linkedTreeIndex);
+            }
+        };
+
         const generateMarkdown = (useFilteredNodes = false) => {
             return trees.map((tree, index) => {
                 const nodesToUse = useFilteredNodes ? getFilteredNodes(tree.nodes) : tree.nodes;
                 
-                let treeMarkdown = `# ${tree.title}`;
+                // Main tree gets # heading, branched trees get ## heading
+                let treeMarkdown = tree.id === 'main' ? `# ${tree.title}` : `## ${tree.title}`;
                 if (tree.breadcrumb.length > 0) {
                     treeMarkdown += ` (Branch from: ${tree.breadcrumb.join(' > ')})`;
                 }
@@ -1736,16 +1713,22 @@
                 
                 const nodeMarkdown = nodesToUse.map(node => {
                     const indent = '  '.repeat(node.level);
-                    let content = `${indent}- ${node.content}`;
+                    let content;
                     
-                    if (node.linkedNodeId) {
-                        let linkedNode = null;
-                        for (const searchTree of trees) {
-                            linkedNode = searchTree.nodes.find(n => n.id === node.linkedNodeId);
-                            if (linkedNode) break;
-                        }
-                        if (linkedNode) {
-                            content += ` → linked to: ${linkedNode.content}`;
+                    // Handle task nodes with proper markdown syntax
+                    if (node.isTask) {
+                        const taskSymbol = node.isCompleted ? '- [x]:' : '- [ ]:';
+                        content = `${indent}${taskSymbol} ${node.content}`;
+                    } else {
+                        content = `${indent}- ${node.content}`;
+                    }
+                    
+                    // Check if this node has been branched out
+                    const isBranchedOut = trees.some(otherTree => otherTree.parentNodeId === node.id);
+                    if (isBranchedOut) {
+                        const branchedTree = trees.find(otherTree => otherTree.parentNodeId === node.id);
+                        if (branchedTree) {
+                            content += ` → branched to: ${branchedTree.title}`;
                         }
                     }
                     
@@ -1814,8 +1797,8 @@
         };
 
         const getBacklinksForNode = (nodeId, nodesToSearch = null) => {
-            const nodes = nodesToSearch || getCurrentNodes();
-            return nodes.filter(node => node.linkedNodeId === nodeId);
+            // Removed - no longer needed with new linking system
+            return [];
         };
 
         const getFilteredNodes = (nodesToFilter = null) => {
@@ -1825,8 +1808,8 @@
                     return nodes.filter(node => node.isTask);
                 case 'notes':
                     return nodes.filter(node => node.note && node.note.trim());
-                case 'linked':
-                    return nodes.filter(node => node.linkedNodeId || getBacklinksForNode(node.id, nodes).length > 0);
+                case 'branched':
+                    return nodes.filter(node => trees.some(tree => tree.parentNodeId === node.id));
                 default:
                     return nodes;
             }
@@ -1866,7 +1849,7 @@
             { key: 'all', label: 'All Nodes', icon: '◎' },
             { key: 'tasks', label: 'Tasks', icon: '□' },
             { key: 'notes', label: 'With Notes', icon: '◊' },
-            { key: 'linked', label: 'Linked', icon: '○—○' }
+            { key: 'branched', label: 'Branched', icon: '⫷' }
         ];
 
         return (
@@ -2026,11 +2009,115 @@
                         </div>
                     </div>
                     
-                    {/* Breadcrumb navigation - only show when in branched tree and not main */}
-                    {trees.length > 0 && trees[activeTreeIndex]?.breadcrumb?.length > 0 && trees[activeTreeIndex]?.id !== 'main' && (
+                    {/* Breadcrumb navigation - only show when there are multiple trees */}
+                    {trees.length > 1 && (
                         <div className="header-breadcrumb">
-                            <div className="header-breadcrumb-text" style={{ color: theme.text }}>
-                                {[...trees[activeTreeIndex].breadcrumb, trees[activeTreeIndex].title].join(' / ')}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
+                                    {/* Always show Main Tree when there are multiple trees */}
+                                    <button
+                                        onClick={() => {
+                                            const mainTreeIndex = trees.findIndex(tree => tree.id === 'main');
+                                            if (mainTreeIndex !== -1) setActiveTreeIndex(mainTreeIndex);
+                                        }}
+                                        style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            color: trees[activeTreeIndex]?.id === 'main' ? theme.text : theme.text + '99',
+                                            fontFamily: 'JetBrains Mono, monospace',
+                                            fontSize: 'clamp(0.6875rem, 2vw, 0.75rem)',
+                                            cursor: 'pointer',
+                                            textDecoration: trees[activeTreeIndex]?.id === 'main' ? 'underline' : 'none',
+                                            fontWeight: trees[activeTreeIndex]?.id === 'main' ? '600' : '400'
+                                        }}
+                                    >
+                                        Main Tree
+                                    </button>
+                                    
+                                    {/* Show breadcrumb path for current tree */}
+                                    {trees[activeTreeIndex]?.breadcrumb?.map((crumb, index) => {
+                                        // Find the tree that corresponds to this breadcrumb level
+                                        const findTreeForCrumb = (crumbIndex) => {
+                                            if (crumbIndex === 0 && crumb === 'Main Tree') {
+                                                return trees.findIndex(tree => tree.id === 'main');
+                                            }
+                                            // For other crumbs, we'd need to trace back through the tree hierarchy
+                                            // For now, make them non-clickable except for Main Tree
+                                            return -1;
+                                        };
+                                        
+                                        const targetTreeIndex = findTreeForCrumb(index);
+                                        
+                                        return (
+                                            <React.Fragment key={index}>
+                                                <span style={{ color: theme.text + '99', fontSize: 'clamp(0.6875rem, 2vw, 0.75rem)' }}>/</span>
+                                                {targetTreeIndex !== -1 ? (
+                                                    <button
+                                                        onClick={() => setActiveTreeIndex(targetTreeIndex)}
+                                                        style={{
+                                                            background: 'none',
+                                                            border: 'none',
+                                                            color: theme.text + '99',
+                                                            fontFamily: 'JetBrains Mono, monospace',
+                                                            fontSize: 'clamp(0.6875rem, 2vw, 0.75rem)',
+                                                            cursor: 'pointer',
+                                                            textDecoration: 'underline'
+                                                        }}
+                                                    >
+                                                        {crumb}
+                                                    </button>
+                                                ) : (
+                                                    <span style={{ 
+                                                        color: theme.text + '99',
+                                                        fontFamily: 'JetBrains Mono, monospace',
+                                                        fontSize: 'clamp(0.6875rem, 2vw, 0.75rem)'
+                                                    }}>
+                                                        {crumb}
+                                                    </span>
+                                                )}
+                                            </React.Fragment>
+                                        );
+                                    })}
+                                    
+                                    {/* Show current tree if not main */}
+                                    {trees[activeTreeIndex]?.id !== 'main' && (
+                                        <>
+                                            <span style={{ color: theme.text + '99', fontSize: 'clamp(0.6875rem, 2vw, 0.75rem)' }}>/</span>
+                                            <span style={{ 
+                                                color: theme.text,
+                                                fontFamily: 'JetBrains Mono, monospace',
+                                                fontSize: 'clamp(0.6875rem, 2vw, 0.75rem)',
+                                                fontWeight: '600',
+                                                textDecoration: 'underline'
+                                            }}>
+                                                {trees[activeTreeIndex]?.title}
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
+                                
+                                {/* Close button for any non-main tree */}
+                                {trees[activeTreeIndex]?.id !== 'main' && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            closeTree(activeTreeIndex);
+                                        }}
+                                        style={{
+                                            background: '#22c55e',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '0.25rem 0.5rem',
+                                            borderRadius: '4px',
+                                            fontSize: 'clamp(0.625rem, 2.5vw, 0.75rem)',
+                                            cursor: 'pointer',
+                                            marginLeft: '0.5rem'
+                                        }}
+                                        title="Close tree and merge changes back"
+                                    >
+                                        ✓ Close
+                                    </button>
+                                )}
                             </div>
                         </div>
                     )}
@@ -2057,7 +2144,7 @@
                                                     <div className="empty-icon">{filterOptions.find(f => f.key === currentFilter)?.icon}</div>
                                                     <div className="empty-title">No {filterOptions.find(f => f.key === currentFilter)?.label.toLowerCase()} found</div>
                                                     <div className="empty-desc">
-                                                        Try a different filter or add some {currentFilter === 'tasks' ? 'task nodes' : currentFilter === 'notes' ? 'notes to your nodes' : 'links between nodes'}.
+                                                        Try a different filter or add some {currentFilter === 'tasks' ? 'task nodes' : currentFilter === 'notes' ? 'notes to your nodes' : 'branched nodes by using the Branch action'}.
                                                     </div>
                                                 </div>
                                             ) : getFilteredNodes(tree.nodes).length === 0 ? (
@@ -2075,9 +2162,10 @@
                                                             node={node}
                                                             theme={theme}
                                                             isSelected={selectedNodeId === node.id && treeIndex === activeTreeIndex}
-                                                            backlinks={getBacklinksForNode(node.id, tree.nodes)}
                                                             treesLength={trees.length}
                                                             editingNodeId={editingNodeId}
+                                                            allTrees={trees}
+                                                            currentTreeIndex={treeIndex}
                                                             onTap={(e) => {
                                                                 e.stopPropagation();
                                                                 
@@ -2112,9 +2200,7 @@
                                                             onFocus={() => focusNode(node.id)}
                                                             onToggleTask={() => toggleTask(node.id)}
                                                             onToggleComplete={() => toggleComplete(node.id)}
-                                                            onLink={() => startLinking(node.id)}
-                                                            onUnlink={() => unlinkNode(node.id)}
-                                                            onJumpToLink={() => jumpToLinkedNode(node.id)}
+                                                            onJumpToLinkedTree={() => jumpToLinkedNode(node.id)}
                                                             onBranchOut={() => {
                                                                 if (trees.length < 5) {
                                                                     branchOut(node.id);
@@ -2137,34 +2223,6 @@
 
                 {!showMarkdownView && (
                     <div className="input-area" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
-                        {isInputFocused && (
-                            <div className="indent-controls">
-                                <button
-                                    className="indent-btn"
-                                    onClick={() => setCurrentIndentLevel(prev => Math.max(0, prev - 1))}
-                                    disabled={currentIndentLevel === 0}
-                                    style={{
-                                        backgroundColor: getColorForLevel(theme, 0),
-                                        borderColor: theme.border,
-                                        color: theme.text
-                                    }}
-                                >
-                                    ← Outdent
-                                </button>
-                                <button
-                                    className="indent-btn"
-                                    onClick={() => setCurrentIndentLevel(prev => prev + 1)}
-                                    style={{
-                                        backgroundColor: getColorForLevel(theme, 0),
-                                        borderColor: theme.border,
-                                        color: theme.text
-                                    }}
-                                >
-                                    Indent →
-                                </button>
-                            </div>
-                        )}
-                        
                         <div 
                             className="input-container"
                             style={{
@@ -2194,19 +2252,26 @@
                                 type="text"
                                 value={currentInput}
                                 onChange={(e) => setCurrentInput(e.target.value)}
-                                onKeyPress={(e) => {
+                                onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                         addNode();
+                                    } else if (e.key === 'Tab') {
+                                        e.preventDefault();
+                                        if (e.shiftKey) {
+                                            setCurrentIndentLevel(prev => Math.max(0, prev - 1));
+                                        } else {
+                                            setCurrentIndentLevel(prev => prev + 1);
+                                        }
                                     }
                                 }}
                                 onFocus={() => {
                                     setIsInputFocused(true);
                                 }}
-                                placeholder={trees.length > 0 ? (
-                                    trees[activeTreeIndex]?.breadcrumb?.length > 0 
-                                        ? `Add to ${trees[activeTreeIndex].breadcrumb[trees[activeTreeIndex].breadcrumb.length - 1]}...`
-                                        : "Add to tree..."
-                                ) : "Start your Tree-e..."}
+                                placeholder={
+                                    trees.length > 0 
+                                        ? `> ${trees[activeTreeIndex]?.id === 'main' ? 'Main Tree' : trees[activeTreeIndex]?.title || 'tree'}${selectedNode ? `: ${selectedNode.content} (lvl ${selectedNode.level + 1})` : ''} / Swipe left or right here`
+                                        : "> Start your Tree-e / Swipe left or right here"
+                                }
                                 style={{ color: theme.text }}
                             />
                         </div>
@@ -2226,7 +2291,7 @@
                         
                         {trees.length === 0 || (trees.length === 1 && currentNodes.length === 0) ? (
                             <div className="instructions" style={{ color: theme.text }}>
-                                Swipe right to indent • Swipe left to outdent • Swipe on input box to adjust level • Return to add node • Link to connect thoughts
+                                Tab to indent • Shift+Tab to outdent • Swipe on input box to adjust level • Return to add node • Branch to explore thoughts • Click breadcrumbs to navigate
                             </div>
                         ) : currentFilter !== 'all' && (
                             <div className="instructions" style={{ color: theme.text }}>
@@ -2249,18 +2314,6 @@
                     node={focusedNode}
                     theme={theme}
                     onSave={saveFocusNote}
-                />
-                
-                <LinkPickerView
-                    isOpen={showLinkPicker}
-                    onClose={() => {
-                        setShowLinkPicker(false);
-                        setLinkingFromNodeId(null);
-                    }}
-                    nodes={getCurrentNodes()}
-                    fromNodeId={linkingFromNodeId}
-                    theme={theme}
-                    onLink={linkNodes}
                 />
 
                 {showClearConfirm && (
