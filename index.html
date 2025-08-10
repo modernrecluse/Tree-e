@@ -914,7 +914,9 @@
         const editInputRef = useRef(null);
 
         const isEditing = editingNodeId === node.id;
-        const isBranchedOut = allTrees.some(tree => tree.parentNodeId === node.id && tree.parentTreeId === allTrees[currentTreeIndex].id);
+    const isBranchedOut = allTrees.some(tree => tree.parentNodeId === node.id && tree.parentTreeId === allTrees[currentTreeIndex].id);
+    // Determine if this is a branched tree (not the main/parent tree)
+    const isBranchedTree = !!allTrees[currentTreeIndex].parentTreeId;
 
         useEffect(() => {
             if (isEditing && editInputRef.current) {
@@ -1009,11 +1011,11 @@
                                 {node.isTask && <span>□</span>}
                                 {node.note && node.note.trim() && <span>◊</span>}
                                 {/* Only show the branch link icon if we're in the PARENT tree, not the branched tree itself */}
-                                {isBranchedOut && !allTrees[currentTreeIndex].parentTreeId && (
+                                {isBranchedOut && !isBranchedTree && (
                                     <span 
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            onJumpToLinkedTree();
+                                            if (onJumpToLinkedTree) onJumpToLinkedTree();
                                         }}
                                         style={{ color: '#3b82f6', cursor: 'pointer' }}
                                         title="Jump to branched tree"
@@ -1200,7 +1202,7 @@
                     <div className="about-section">
                         <h4 className="about-title">Getting Started</h4>
                         <div className="getting-started-list">
-                            <div>• Start typing at the > prompt</div>
+                            <div>• Start typing at the {'>'} prompt</div>
                             <div>• Tab to indent, Shift+Tab to outdent</div>
                             <div>• Swipe on input box to adjust indent level</div>
                             <div>• Notice how each level gets its own color</div>
@@ -2194,7 +2196,10 @@
                                                             onFocus={() => focusNode(node.id)}
                                                             onToggleTask={() => toggleTask(node.id)}
                                                             onToggleComplete={() => toggleComplete(node.id)}
-                                                            onJumpToLinkedTree={() => jumpToLinkedNode(node.id)}
+                                                            // Only pass onJumpToLinkedTree in parent tree, never in branched tree
+                                                            onJumpToLinkedTree={
+                                                                trees[treeIndex].parentTreeId ? undefined : () => jumpToLinkedNode(node.id)
+                                                            }
                                                             onBranchOut={() => {
                                                                 if (trees.length < 5) {
                                                                     branchOut(node.id);
@@ -2231,7 +2236,7 @@
                             {...inputSwipeHandlers}
                         >
                             <div className="input-prompt" style={{ color: theme.prompt }}>
-                                >
+                                {'>'}
                             </div>
                             
                             {currentIndentLevel > 0 && (
