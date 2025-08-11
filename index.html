@@ -933,28 +933,73 @@
 
     // QR Code utilities
     const generateRandomKey = () => {
-        return CryptoJS.lib.WordArray.random(32).toString();
+        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     };
 
     const encryptData = (data, key) => {
-        return CryptoJS.AES.encrypt(data, key).toString();
+        try {
+            if (typeof CryptoJS !== 'undefined') {
+                return CryptoJS.AES.encrypt(data, key).toString();
+            } else {
+                // Simple fallback encoding if CryptoJS fails
+                console.warn('CryptoJS not available, using base64 encoding');
+                return btoa(data + '::' + key);
+            }
+        } catch (error) {
+            console.error('Encryption failed:', error);
+            throw new Error('Failed to encrypt data');
+        }
     };
 
     const decryptData = (encryptedData, key) => {
-        const bytes = CryptoJS.AES.decrypt(encryptedData, key);
-        return bytes.toString(CryptoJS.enc.Utf8);
+        try {
+            if (typeof CryptoJS !== 'undefined') {
+                const bytes = CryptoJS.AES.decrypt(encryptedData, key);
+                return bytes.toString(CryptoJS.enc.Utf8);
+            } else {
+                // Simple fallback decoding
+                const decoded = atob(encryptedData);
+                return decoded.split('::')[0];
+            }
+        } catch (error) {
+            console.error('Decryption failed:', error);
+            throw new Error('Failed to decrypt data');
+        }
     };
 
     const compressData = (data) => {
-        return LZString.compress(data);
+        try {
+            if (typeof LZString !== 'undefined') {
+                return LZString.compress(data);
+            } else {
+                // Fallback - no compression
+                console.warn('LZString not available, skipping compression');
+                return data;
+            }
+        } catch (error) {
+            console.error('Compression failed:', error);
+            return data; // Return uncompressed data as fallback
+        }
     };
 
     const decompressData = (compressedData) => {
-        return LZString.decompress(compressedData);
+        try {
+            if (typeof LZString !== 'undefined') {
+                const result = LZString.decompress(compressedData);
+                return result || compressedData; // Return original if decompression fails
+            } else {
+                return compressedData;
+            }
+        } catch (error) {
+            console.error('Decompression failed:', error);
+            return compressedData;
+        }
     };
 
     const exportToQR = async (trees, currentTheme, customThemes, selectedTreesOnly = false) => {
         try {
+            console.log('Starting QR export...');
+            
             // Prepare data
             const dataToExport = selectedTreesOnly ? trees.filter(tree => tree.selected) : trees;
             
@@ -965,6 +1010,7 @@
                 isCustomTheme: !builtInThemes[currentTheme]
             };
             
+            console.log('Preparing data for export...');
             const jsonData = JSON.stringify({
                 version: '1.1', // Updated version to indicate theme support
                 timestamp: Date.now(),
@@ -975,27 +1021,49 @@
                 theme: themeData
             });
 
+            console.log('Data size:', jsonData.length, 'characters');
+
             // Compress
+            console.log('Compressing data...');
             const compressed = compressData(jsonData);
+            console.log('Compressed size:', compressed.length, 'characters');
             
             // Generate encryption key
+            console.log('Generating encryption key...');
             const key = generateRandomKey();
             
             // Encrypt
+            console.log('Encrypting data...');
             const encrypted = encryptData(compressed, key);
             
             // Create QR payload
             const qrPayload = `tree-e://${encrypted}|${key}`;
+            console.log('QR payload size:', qrPayload.length, 'characters');
+            
+            // Check if payload is too large for QR code
+            if (qrPayload.length > 2950) {
+                throw new Error(`Data too large for QR code (${qrPayload.length} chars). Try exporting fewer trees or reducing content.`);
+            }
             
             // Generate QR code
-            const qrDataUrl = await QRCode.toDataURL(qrPayload, {
-                width: 300,
-                margin: 2,
-                color: {
-                    dark: '#000000',
-                    light: '#ffffff'
-                }
-            });
+            console.log('Generating QR code...');
+            let qrDataUrl;
+            
+            if (typeof QRCode !== 'undefined') {
+                qrDataUrl = await QRCode.toDataURL(qrPayload, {
+                    width: 300,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#ffffff'
+                    },
+                    errorCorrectionLevel: 'M'
+                });
+            } else {
+                throw new Error('QRCode library not available. Please refresh the page and try again.');
+            }
+
+            console.log('QR code generated successfully');
 
             return {
                 qrDataUrl,
@@ -1003,13 +1071,15 @@
                 nodeCount: dataToExport.reduce((total, tree) => total + tree.nodes.length, 0)
             };
         } catch (error) {
-            console.error('Failed to generate QR code:', error);
-            throw new Error('Failed to generate QR code');
+            console.error('QR export failed at step:', error.message);
+            throw new Error(`Export failed: ${error.message}`);
         }
     };
 
     const importFromQR = (qrData) => {
         try {
+            console.log('Starting QR import...');
+            
             // Check if it's a Tree-e QR code
             if (!qrData.startsWith('tree-e://')) {
                 throw new Error('Not a valid Tree-e QR code');
@@ -1023,25 +1093,29 @@
                 throw new Error('Invalid QR code format');
             }
 
+            console.log('Decrypting data...');
             // Decrypt
             const compressed = decryptData(encryptedData, key);
             if (!compressed) {
-                throw new Error('Failed to decrypt data');
+                throw new Error('Failed to decrypt data - invalid key or corrupted data');
             }
 
+            console.log('Decompressing data...');
             // Decompress
             const jsonData = decompressData(compressed);
             if (!jsonData) {
                 throw new Error('Failed to decompress data');
             }
 
+            console.log('Parsing JSON data...');
             // Parse
             const importedData = JSON.parse(jsonData);
             
             if (!importedData.trees || !Array.isArray(importedData.trees)) {
-                throw new Error('Invalid data structure');
+                throw new Error('Invalid data structure - trees array missing');
             }
 
+            console.log('Processing imported trees...');
             // Generate new IDs to avoid conflicts
             const processedTrees = importedData.trees.map(tree => ({
                 ...tree,
@@ -1051,6 +1125,8 @@
                     id: generateId()
                 }))
             }));
+
+            console.log('Import successful');
 
             return {
                 trees: processedTrees,
@@ -1450,6 +1526,12 @@
         // QR Code functions
         const handleQRExport = async () => {
             try {
+                // Quick check if we have data to export
+                if (trees.length === 0 || trees.every(tree => tree.nodes.length === 0)) {
+                    alert('No trees to export! Add some content first.');
+                    return;
+                }
+
                 const qrData = await exportToQR(trees, ui.currentTheme, customThemes);
                 updateUi({ 
                     qrExportData: qrData,
@@ -1457,7 +1539,18 @@
                     showSyncMenu: false
                 });
             } catch (error) {
-                alert('Failed to generate QR code: ' + error.message);
+                console.error('QR Export Error:', error);
+                let errorMessage = 'Failed to generate QR code';
+                
+                if (error.message.includes('too large')) {
+                    errorMessage = 'Your trees are too large for QR code export. Try exporting fewer trees or reducing content length.';
+                } else if (error.message.includes('QRCode library')) {
+                    errorMessage = 'QR code library failed to load. Please refresh the page and try again.';
+                } else if (error.message.includes('Export failed:')) {
+                    errorMessage = error.message;
+                }
+                
+                alert(errorMessage);
             }
         };
 
@@ -1559,6 +1652,17 @@
             const allAvailableThemes = { ...builtInThemes, ...loadedCustomThemes };
             const themeToUse = allAvailableThemes[savedTheme] ? savedTheme : 'light';
             updateUi({ currentTheme: themeToUse });
+            
+            // Check QR libraries availability
+            if (typeof QRCode === 'undefined') {
+                console.warn('QRCode library not loaded - QR sync will not work');
+            }
+            if (typeof CryptoJS === 'undefined') {
+                console.warn('CryptoJS library not loaded - using fallback encoding');
+            }
+            if (typeof LZString === 'undefined') {
+                console.warn('LZString library not loaded - skipping compression');
+            }
             
             setTimeout(() => {
                 if (inputRef.current) {
