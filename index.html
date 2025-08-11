@@ -10,7 +10,8 @@
 
 <meta name="description" content="Tree-e: Hierarchical note-taking app with beautiful themes">
 <meta name="theme-color" content="#e9f5e9">
-<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiVHJlZS1lIiwic2hvcnRfbmFtZSI6IlRyZWUtZSIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwic3RhcnRfdXJsIjoiLyIsInRoZW1lX2NvbG9yIjoiI2U5ZjVlOSIsImJhY2tncm91bmRfY29sb3IiOiIjZTlmNWU5IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaUlIWnBaWGRDYjNnOUlqQWdNQ0F4TWpnZ01USTRMQ0lqSURFeU9DQXhNamt6TGpGMWNpNGhMU0lnWm1sc2JEMGlJek5tWm1NeVlpSStQR04xY21ObElDOStQSEJoZEdnZ1pEMGlUVEkxSURjMElHTnNhWEJRWVhSb1BDOWpkWEpqYkdVK1BHTnBjbU5zWlNCamVEMGlObVFpSUdONVBTSTJaQ0lnY2owNU1pd2dOUGdnTWpOa01EWk1OUzhpSUdac2JIcGJKVGMwT1RVaU5qWWlQand2WTJseVkyeGxQanh6ZEhKdmEyVWdkMmxrZEdnOVlqTWlJR2hsYVdkb2REMGlOakkwSWlCamIyeDFjeWNpSWlCelpubHNaVDBpZDBsc1lXWGtPVFprWnpBaE1qQXNPREkyWklCMFpXMWpkVDRpSUhCdlpXbHVkR2s5VGpFa2NTSXZQanczSWo0OEwzTjJaejQ9IiwidHlwZSI6ImltYWdlL3N2Zyt4bWwiLCJzaXplcyI6IjEyOHgxMjgifV19">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjQwOTYiIGhlaWdodD0iNDA5NiIgdmlld0JveD0iMCAwIDQwOTYgNDA5NiI+PHJlY3Qgd2lkdGg9IjQwOTYiIGhlaWdodD0iNDA5NiIgZmlsbD0iI2U4ZTllNiIvPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIwNDggMjA0OCkiPjxwYXRoIGQ9Ik00MDcuNTAxLDEzNTAuMDQgTDAsLTEzNTAuMDQgTC00MDcuNTAxLDEzNTAuMDQgTDQwNy41MDEsMTM1MC4wNCBaIiBmaWxsPSIjMzgyNDE4Ii8+PHBhdGggZD0iTS05LjA3NTIyZS0wNiwtOTQ1LjM2MiBDLTkuMDc1MjJlLTA2LC04MTUuNzA2IDEwNS44NjYsLTcwOS44NCAyMzUuNTIyLC03MDkuODQgTDk0MC45LC03MDkuODQgQzEwNzAuNTYsLTcwOS44NCAxMTc2LjQyLC04MTUuNzA2IDExNzYuNDIsLTk0NS4zNjIgQzExNzYuNDIsLTEwNzUuMDIgMTA3MC41NiwtMTE4MC44OCA5NDAuOSwtMTE4MC44OCBMMjM1LjUyMiwtMTE4MC44OCBDMTA1Ljg2NiwtMTE4MC44OCAtOS4wNzUyMmUtMDYsLTEwNzUuMDIgLTkuMDc1MjJlLTA2LC05NDUuMzYyIFoiIGZpbGw9IiM5YWJjNDUiLz48cGF0aCBkPSJNMTE3Ni40MiwtOTkuNTk1OSBDMTE3Ni40MiwzMC4wNjA0IDEwNzAuNTYsMTM1LjkyNiA5NDAuOSwxMzUuOTI2IEwyMzUuNTIyLDEzNS45MjYgQzEwNS44NjYsMTM1LjkyNiAtMy40MTA2MWUtMTMsMzAuMDYwNCAtMy40MTA2MWUtMTMsLTk5LjU5NTkgQy0zLjQxMDYxZS0xMywtMjI5LjI1MiAxMDUuODY2LC0zMzUuMTE4IDIzNS41MjIsLTMzNS4xMTggTDk0MC45LC0zMzUuMTE4IEMxMDcwLjU2LC0zMzUuMTE4IDExNzYuNDIsLTIyOS4yNTIgMTE3Ni40MiwtOTkuNTk1OSBaIiBmaWxsPSIjOWFiYzQ1Ii8+PHBhdGggZD0iTS0yLjI3Mzc0ZS0xMywtNTcwLjY0MSBDLTIuMjczNzRlLTEzLC00NDAuOTg0IC0xMDUuODY2LC0zMzUuMTE4IC0yMzUuNTIyLC0zMzUuMTE4IEwtOTQwLjksLTMzNS4xMTggQy0xMDcwLjU2LC0zMzUuMTE4IC0xMTc2LjQyLC00NDAuOTg0IC0xMTc2LjQyLC01NzAuNjQxIEMtMTE3Ni40MiwtNzAwLjI5NyAtMTA3MC41NiwtODA2LjE2MyAtOTQwLjksLTgwNi4xNjMgTC0yMzUuNTIyLC04MDYuMTYzIEMtMTA1Ljg2NiwtODA2LjE2MyAtMi4yNzM3NGUtMTMsLTcwMC4yOTcgLTIuMjczNzRlLTEzLC01NzAuNjQxIFoiIGZpbGw9IiNlMWY5YTQiLz48cGF0aCBkPSJNMCwzMjIuMjIxIEMwLDQ1MS44NzggLTEwNS44NjYsNTU3Ljc0NCAtMjM1LjUyMiw1NTcuNzQ0IEwtOTQwLjksNTU3Ljc0NCBDLTEwNzAuNTYsNTU3Ljc0NCAtMTE3Ni40Miw0NTEuODc4IC0xMTc2LjQyLDMyMi4yMjEgQy0xMTc2LjQyLDE5Mi41NjUgLTEwNzAuNTYsODYuNjk5IC05NDAuOSw4Ni42OTkgTC0yMzUuNTIyLDg2LjY5OSBDLTEwNS44NjYsODYuNjk5IDAsMTkyLjU2NSAwLDMyMi4yMjEgWiIgZmlsbD0iIzY0N2YyMSIvPjwvZz48L3N2Zz4=">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiVHJlZS1lIiwic2hvcnRfbmFtZSI6IlRyZWUtZSIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwic3RhcnRfdXJsIjoiLyIsInRoZW1lX2NvbG9yIjoiI2U5ZjVlOSIsImJhY2tncm91bmRfY29sb3IiOiIjZTlmNWU5IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjJaWEp6YVc5dVBTSXhMakVpSUhodGJHNXpQU0pvZEhSd09pOHZkM2QzTG5jekxtOXlaeTh5TURBd0wzTjJaeUlnZDJsa2RHZzlJalF3T1RZaUlHaGxhV2RvZEQwaU5EQTVOaUlnZG1sbGQwSnZlRDBpTUNBd0lEUXdPVFlnTkRBNU5pSStQSEpsWTNRZ2QybGtkR2c5SWpRd09UWWlJR2hsYVdkb2REMGlOREE1TmlJZ1ptbHNiRDBpSTJVNFpUbGxOaUl2UGp4bklIUnlZVzV6Wm05eWJUMGlkSEpoYm5Oc1lYUmxLREkxTkRrZ01qVTBPQ2tpUGp4d1lYUm9JR1E5SWswME1EY3VOVEF4TERFek5UQXVNRFFnVERBc0xURXpOVEF1TURRZ1RDMDBNRGN1TlRBeExERXpOVEF1TURRZ1REUXdOeTQxTURFc01UTTFNQzR3TkNCV2lGZGlhV3hzUFNJak16Z3lOREU0SWk4K1BIQmhkR2dnWkQwaVRTMDVMakEzTlRJeVpTMHdOaXd0T1RRMUXTTTJJRU10T1M0d056VXlNbVV0TURZC0xUZ3hOUzQzTURZZ01UQTFMamcyTml3dE56QTVMamcwSURJek5TNDFNaklzTFRjd09TNDRORXhPVUVKOU9RUXVPUkJRTWpRMUxqQXhNVHBqRkRZMUxqRTNOaklDTFRjeU1TNDBNak1nTXpjek5pNDVOVHh4VFRsR2VEQk1OUzB5TlNFUWp0ekxtbHNiRDBpSXprZ1ltTXpORlVpTHo0OGNHRjBhQ0JrUFNKTk1URTNOaTQwTWl3dE9UazFOVFE1SUVNeE1UYzJMalF5TERNd0xqQTJNRFFnTVRBM01DNDFOaXd4TXpVNU1qWWdPVFF3TGprc01UTXpOaTQyTXpZZ1RESTBhVEU0V1k9IiwidHlwZSI6ImltYWdlL3N2Zyt4bWwiLCJzaXplcyI6IjQwOTZ4NDA5NiJ9XX0=">
 
 <!-- React and Babel -->
 
@@ -64,20 +65,42 @@
         align-items: center;
         justify-content: space-between;
         gap: 0.75rem;
-        flex-wrap: wrap;
+    }
+    
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
     }
     
     .header-title {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        flex-wrap: wrap;
     }
     
     .header h1 {
         font-size: clamp(1rem, 4vw, 1.25rem);
         font-weight: 600;
         margin: 0;
+    }
+    
+    .tree-dots {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+    }
+    
+    .tree-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+    
+    .tree-dot.active {
+        width: 8px;
+        height: 8px;
     }
     
     .badge {
@@ -93,6 +116,7 @@
         display: flex;
         gap: clamp(0.375rem, 2vw, 0.5rem);
         align-items: center;
+        position: relative;
     }
     
     .control-btn {
@@ -118,6 +142,24 @@
         opacity: 0.4;
         cursor: not-allowed;
         transform: none;
+    }
+    
+    .menu-btn {
+        width: clamp(36px, 8vw, 40px);
+        height: clamp(36px, 8vw, 40px);
+        border: 1px solid;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: clamp(0.875rem, 3vw, 1rem);
+        cursor: pointer;
+        background: transparent;
+        transition: transform 0.1s ease;
+    }
+    
+    .menu-btn:active {
+        transform: scale(0.95);
     }
     
     .tree-nav {
@@ -187,6 +229,7 @@
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        position: relative;
     }
     
     .tree-container {
@@ -194,6 +237,32 @@
         overflow-y: auto;
         overflow-x: hidden;
         padding: clamp(0.75rem, 3vw, 1rem);
+        position: relative;
+    }
+    
+    .swipe-hints {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 20px;
+        pointer-events: none;
+        z-index: 10;
+        opacity: 0.3;
+        transition: opacity 0.2s ease;
+    }
+    
+    .swipe-hint-left {
+        left: 0;
+        background: linear-gradient(to right, rgba(0,0,0,0.1), transparent);
+    }
+    
+    .swipe-hint-right {
+        right: 0;
+        background: linear-gradient(to left, rgba(0,0,0,0.1), transparent);
+    }
+    
+    .swipe-hints.visible {
+        opacity: 0.6;
     }
     
     .nodes-list {
@@ -464,6 +533,7 @@
     .dropdown {
         position: relative;
         display: inline-block;
+        z-index: 100;
     }
     
     .dropdown-content {
@@ -474,7 +544,7 @@
         border: 1px solid #ccc;
         border-radius: 6px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        z-index: 100;
+        z-index: 1000;
         min-width: 140px;
         max-height: 300px;
         overflow-y: auto;
@@ -768,75 +838,6 @@
         );
     };
 
-    const ThemeDropdown = ({ currentTheme, onThemeChange, isOpen, onToggle, theme }) => (
-        <div className="dropdown">
-            <button 
-                className="control-btn"
-                onClick={onToggle}
-                style={{
-                    backgroundColor: getColorForLevel(theme, 0),
-                    borderColor: theme.border,
-                    color: theme.text
-                }}
-            >
-                ◐
-            </button>
-            {isOpen && (
-                <div className="dropdown-content">
-                    {Object.entries(themes).map(([key, themeOption]) => (
-                        <button
-                            key={key}
-                            className="dropdown-item"
-                            onClick={() => {
-                                onThemeChange(key);
-                                onToggle();
-                            }}
-                        >
-                            <span>{themeOption.name}</span>
-                            {currentTheme === key && <span>●</span>}
-                        </button>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-
-    const FilterDropdown = ({ currentFilter, onFilterChange, isOpen, onToggle, theme, filterOptions }) => (
-        <div className="dropdown">
-            <button 
-                className="control-btn"
-                onClick={onToggle}
-                style={{
-                    backgroundColor: currentFilter !== 'all' ? theme.text : getColorForLevel(theme, 0),
-                    borderColor: theme.border,
-                    color: currentFilter !== 'all' ? theme.background : theme.text
-                }}
-            >
-                ◈
-            </button>
-            {isOpen && (
-                <div className="dropdown-content">
-                    {filterOptions.map((option) => (
-                        <button
-                            key={option.key}
-                            className="dropdown-item"
-                            onClick={() => {
-                                onFilterChange(option.key);
-                                onToggle();
-                            }}
-                        >
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <span>{option.icon}</span>
-                                <span>{option.label}</span>
-                            </span>
-                            {currentFilter === option.key && <span>●</span>}
-                        </button>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-
     const NodeComponent = ({ node, theme, isSelected, isEditing, editText, onEditTextChange, trees, currentTreeId, onTap, onIndent, onOutdent, onDelete, onFocus, onToggleTask, onToggleComplete, onBranchOut, onEdit, onSaveEdit, onCancelEdit, onJumpToBranch }) => {
         const editInputRef = useRef(null);
         const isBranchedOut = trees.some(tree => tree.parentNodeId === node.id);
@@ -999,7 +1000,9 @@
             showFilterDropdown: false,
             showMarkdownView: false,
             showClearConfirm: false,
-            focusedNode: null
+            showMainMenu: false,
+            focusedNode: null,
+            showSwipeHints: false
         });
 
         const inputRef = useRef(null);
@@ -1063,6 +1066,43 @@
             () => updateUi({ indentLevel: Math.max(0, ui.indentLevel - 1) }),
             () => updateUi({ indentLevel: ui.indentLevel + 1 })
         );
+
+        // Touch handlers for tree navigation
+        const treeSwipeHandlers = useTouchHandler(
+            () => {
+                // Swipe left = next tree
+                if (trees.length > 1) {
+                    const currentIndex = getActiveTreeIndex();
+                    const nextIndex = currentIndex < trees.length - 1 ? currentIndex + 1 : 0;
+                    setActiveTree(trees[nextIndex].id);
+                    updateUi({ showSwipeHints: false });
+                }
+            },
+            () => {
+                // Swipe right = previous tree
+                if (trees.length > 1) {
+                    const currentIndex = getActiveTreeIndex();
+                    const prevIndex = currentIndex > 0 ? currentIndex - 1 : trees.length - 1;
+                    setActiveTree(trees[prevIndex].id);
+                    updateUi({ showSwipeHints: false });
+                }
+            }
+        );
+
+        // Enhanced touch handlers for tree navigation with hints
+        const enhancedTreeSwipeHandlers = {
+            ...treeSwipeHandlers,
+            onTouchStart: (e) => {
+                if (trees.length > 1) {
+                    updateUi({ showSwipeHints: true });
+                }
+                treeSwipeHandlers.onTouchStart(e);
+            },
+            onTouchEnd: (e) => {
+                updateUi({ showSwipeHints: false });
+                treeSwipeHandlers.onTouchEnd(e);
+            }
+        };
 
         // Node operations
         const addNode = () => {
@@ -1402,8 +1442,10 @@
                 updateUi({ 
                     showThemeDropdown: false,
                     showFilterDropdown: false,
+                    showMainMenu: false,
                     editingNodeId: null,
-                    editText: ''
+                    editText: '',
+                    showSwipeHints: false
                 });
                 
                 const activeTree = getActiveTree();
@@ -1438,10 +1480,24 @@
                 onClick={handleBackgroundClick}
             >
                 {/* Header */}
-                <div className="header" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
+                <div className="header" style={{ backgroundColor: theme.background, borderColor: theme.border }} {...(trees.length > 1 ? enhancedTreeSwipeHandlers : {})}>
                     <div className="header-main">
-                        <div className="header-title">
-                            <h1 style={{ color: theme.text }}>Tree-e</h1>
+                        <div className="header-left">
+                            <div className="header-title">
+                                {trees.length > 1 && (
+                                    <div className="tree-dots" title="Swipe to navigate between trees">
+                                        {trees.map((_, index) => (
+                                            <div
+                                                key={index}
+                                                className={`tree-dot ${index === getActiveTreeIndex() ? 'active' : ''}`}
+                                                style={{
+                                                    backgroundColor: index === getActiveTreeIndex() ? theme.text : theme.text + '40'
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                             
                             {ui.currentFilter !== 'all' && (
                                 <span className="badge" style={{ 
@@ -1452,125 +1508,115 @@
                                     {filterOptions.find(f => f.key === ui.currentFilter)?.label}
                                 </span>
                             )}
-                            
-                            {trees.length > 1 && (
-                                <span className="badge" style={{ 
-                                    color: trees.length >= 5 ? 'white' : theme.text + '99',
-                                    background: trees.length >= 5 ? '#ef4444' : theme.border
-                                }}>
-                                    {trees.length}/5 trees
-                                </span>
-                            )}
                         </div>
                         
                         <div className="header-controls">
-                            {trees.length > 1 && (
-                                <div className="tree-nav">
-                                    <button
-                                        className="nav-btn"
-                                        onClick={() => {
-                                            const currentIndex = getActiveTreeIndex();
-                                            const prevIndex = currentIndex > 0 ? currentIndex - 1 : trees.length - 1;
-                                            setActiveTree(trees[prevIndex].id);
-                                        }}
-                                        style={{
-                                            borderColor: theme.border,
-                                            color: theme.text
-                                        }}
-                                    >
-                                        ‹
-                                    </button>
-                                    <span className="nav-counter" style={{ color: theme.text }}>
-                                        {getActiveTreeIndex() + 1}/{trees.length}
-                                    </span>
-                                    <button
-                                        className="nav-btn"
-                                        onClick={() => {
-                                            const currentIndex = getActiveTreeIndex();
-                                            const nextIndex = currentIndex < trees.length - 1 ? currentIndex + 1 : 0;
-                                            setActiveTree(trees[nextIndex].id);
-                                        }}
-                                        style={{
-                                            borderColor: theme.border,
-                                            color: theme.text
-                                        }}
-                                    >
-                                        ›
-                                    </button>
+                            {/* Main Menu */}
+                            <div className="dropdown">
+                                <button 
+                                    className="menu-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        updateUi({ 
+                                            showMainMenu: !ui.showMainMenu, 
+                                            showThemeDropdown: false, 
+                                            showFilterDropdown: false 
+                                        });
+                                    }}
+                                    style={{
+                                        backgroundColor: getColorForLevel(theme, 0),
+                                        borderColor: theme.border,
+                                        color: theme.text
+                                    }}
+                                >
+                                    ≡
+                                </button>
+                                {ui.showMainMenu && (
+                                    <div className="dropdown-content">
+                                        <button
+                                            className="dropdown-item"
+                                            onClick={() => {
+                                                updateUi({ currentFilter: ui.currentFilter === 'all' ? 'tasks' : 'all', showMainMenu: false });
+                                            }}
+                                        >
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <span>◈</span>
+                                                <span>Filter</span>
+                                            </span>
+                                            <span>{ui.currentFilter !== 'all' ? '●' : ''}</span>
+                                        </button>
+                                        <button
+                                            className="dropdown-item"
+                                            onClick={() => {
+                                                updateUi({ showMainMenu: false, showMarkdownView: !ui.showMarkdownView });
+                                            }}
+                                            disabled={trees.length === 0 || trees.every(tree => tree.nodes.length === 0)}
+                                        >
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <span>{ui.showMarkdownView ? '◀' : '▶'}</span>
+                                                <span>Export</span>
+                                            </span>
+                                        </button>
+                                        <button
+                                            className="dropdown-item"
+                                            onClick={() => {
+                                                updateUi({ showThemeDropdown: !ui.showThemeDropdown, showMainMenu: false });
+                                            }}
+                                        >
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <span>◐</span>
+                                                <span>Themes</span>
+                                            </span>
+                                        </button>
+                                        <button
+                                            className="dropdown-item"
+                                            onClick={() => {
+                                                updateUi({ showAbout: true, showMainMenu: false });
+                                            }}
+                                        >
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <span>◯</span>
+                                                <span>About</span>
+                                            </span>
+                                        </button>
+                                        <button
+                                            className="dropdown-item"
+                                            onClick={() => {
+                                                if (trees.length > 0 && trees.some(tree => tree.nodes.length > 0)) {
+                                                    updateUi({ showClearConfirm: true, showMainMenu: false });
+                                                }
+                                            }}
+                                            disabled={trees.length === 0 || trees.every(tree => tree.nodes.length === 0)}
+                                            style={{ color: trees.length === 0 || trees.every(tree => tree.nodes.length === 0) ? '#999' : '#ef4444' }}
+                                        >
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <span>╳</span>
+                                                <span>Clear All</span>
+                                            </span>
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {/* Theme Dropdown - Fixed positioning */}
+                            {ui.showThemeDropdown && (
+                                <div style={{ position: 'absolute', top: '100%', right: 0, zIndex: 200 }}>
+                                    <div className="dropdown-content">
+                                        {Object.entries(themes).map(([key, themeOption]) => (
+                                            <button
+                                                key={key}
+                                                className="dropdown-item"
+                                                onClick={() => {
+                                                    updateUi({ currentTheme: key, showThemeDropdown: false });
+                                                }}
+                                            >
+                                                <span>{themeOption.name}</span>
+                                                {ui.currentTheme === key && <span>●</span>}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
-                            
-                            <FilterDropdown
-                                currentFilter={ui.currentFilter}
-                                onFilterChange={(filter) => updateUi({ currentFilter: filter })}
-                                isOpen={ui.showFilterDropdown}
-                                onToggle={(e) => {
-                                    if (e) e.stopPropagation();
-                                    updateUi({ showFilterDropdown: !ui.showFilterDropdown, showThemeDropdown: false });
-                                }}
-                                theme={theme}
-                                filterOptions={filterOptions}
-                            />
-                            
-                            <button
-                                className="control-btn"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    updateUi({ showAbout: true });
-                                }}
-                                style={{
-                                    backgroundColor: getColorForLevel(theme, 0),
-                                    borderColor: theme.border,
-                                    color: theme.text
-                                }}
-                            >
-                                ◯
-                            </button>
-                            
-                            <button
-                                className="control-btn"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    updateUi({ showMarkdownView: !ui.showMarkdownView });
-                                }}
-                                disabled={trees.length === 0 || trees.every(tree => tree.nodes.length === 0)}
-                                style={{
-                                    backgroundColor: ui.showMarkdownView ? theme.text : getColorForLevel(theme, 0),
-                                    borderColor: theme.border,
-                                    color: ui.showMarkdownView ? theme.background : theme.text
-                                }}
-                            >
-                                {ui.showMarkdownView ? '◀' : '▶'}
-                            </button>
-                            
-                            <button
-                                className="control-btn"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (trees.length > 0 && trees.some(tree => tree.nodes.length > 0)) {
-                                        updateUi({ showClearConfirm: true });
-                                    }
-                                }}
-                                disabled={trees.length === 0 || trees.every(tree => tree.nodes.length === 0)}
-                                style={{
-                                    backgroundColor: getColorForLevel(theme, 0),
-                                    borderColor: theme.border,
-                                    color: theme.text
-                                }}
-                            >
-                                ╳
-                            </button>
-                            
-                            <ThemeDropdown
-                                currentTheme={ui.currentTheme}
-                                onThemeChange={(themeName) => updateUi({ currentTheme: themeName })}
-                                isOpen={ui.showThemeDropdown}
-                                onToggle={(e) => {
-                                    if (e) e.stopPropagation();
-                                    updateUi({ showThemeDropdown: !ui.showThemeDropdown, showFilterDropdown: false });
-                                }}
-                                theme={theme}
-                            />
                         </div>
                     </div>
                     
@@ -1630,52 +1676,83 @@
                 ) : (
                     <div className="main-content">
                         <div className="tree-container">
+                            {/* Swipe hints */}
+                            {trees.length > 1 && (
+                                <>
+                                    <div className={`swipe-hints swipe-hint-left ${ui.showSwipeHints ? 'visible' : ''}`} style={{ background: `linear-gradient(to right, ${theme.border}, transparent)` }} />
+                                    <div className={`swipe-hints swipe-hint-right ${ui.showSwipeHints ? 'visible' : ''}`} style={{ background: `linear-gradient(to left, ${theme.border}, transparent)` }} />
+                                </>
+                            )}
+                            
                             <div className="nodes-list">
                                 {filteredNodes.length === 0 && currentNodes.length > 0 && ui.currentFilter !== 'all' ? (
-                                    <div className="empty-state">
+                                    <div className="empty-state" {...enhancedTreeSwipeHandlers}>
                                         <div className="empty-icon">{filterOptions.find(f => f.key === ui.currentFilter)?.icon}</div>
                                         <div className="empty-title">No {filterOptions.find(f => f.key === ui.currentFilter)?.label.toLowerCase()} found</div>
                                         <div className="empty-desc">
                                             Try a different filter or add some {ui.currentFilter === 'tasks' ? 'task nodes' : ui.currentFilter === 'notes' ? 'notes to your nodes' : 'branched nodes'}.
+                                            {trees.length > 1 && <><br /><br />💡 Swipe here to navigate between trees</>}
                                         </div>
                                     </div>
                                 ) : filteredNodes.length === 0 ? (
-                                    <div className="empty-state">
+                                    <div className="empty-state" {...enhancedTreeSwipeHandlers}>
                                         <div className="empty-icon">🌱</div>
                                         <div className="empty-title">Empty tree</div>
                                         <div className="empty-desc">
                                             {activeTree?.id === 'main' ? 'Start your Tree-e by adding your first thought below.' : 'This branch is ready for new ideas.'}
+                                            {trees.length > 1 && <><br /><br />💡 Swipe here to navigate between trees</>}
                                         </div>
                                     </div>
                                 ) : (
-                                    filteredNodes.map(node => (
-                                        <NodeComponent
-                                            key={node.id}
-                                            node={node}
-                                            theme={theme}
-                                            isSelected={selectedNodeId === node.id}
-                                            isEditing={ui.editingNodeId === node.id}
-                                            editText={ui.editText}
-                                            onEditTextChange={(text) => updateUi({ editText: text })}
-                                            trees={trees}
-                                            currentTreeId={activeTreeId}
-                                            onTap={(e) => {
-                                                e.stopPropagation();
-                                                selectNode(node.id);
-                                            }}
-                                            onIndent={() => indentNode(node.id)}
-                                            onOutdent={() => outdentNode(node.id)}
-                                            onDelete={() => deleteNode(node.id)}
-                                            onFocus={() => focusNode(node.id)}
-                                            onToggleTask={() => toggleTask(node.id)}
-                                            onToggleComplete={() => toggleComplete(node.id)}
-                                            onBranchOut={() => branchOut(node.id)}
-                                            onEdit={() => editNode(node.id)}
-                                            onSaveEdit={saveEdit}
-                                            onCancelEdit={cancelEdit}
-                                            onJumpToBranch={() => jumpToBranch(node.id)}
-                                        />
-                                    ))
+                                    <>
+                                        {filteredNodes.map(node => (
+                                            <NodeComponent
+                                                key={node.id}
+                                                node={node}
+                                                theme={theme}
+                                                isSelected={selectedNodeId === node.id}
+                                                isEditing={ui.editingNodeId === node.id}
+                                                editText={ui.editText}
+                                                onEditTextChange={(text) => updateUi({ editText: text })}
+                                                trees={trees}
+                                                currentTreeId={activeTreeId}
+                                                onTap={(e) => {
+                                                    e.stopPropagation();
+                                                    selectNode(node.id);
+                                                }}
+                                                onIndent={() => indentNode(node.id)}
+                                                onOutdent={() => outdentNode(node.id)}
+                                                onDelete={() => deleteNode(node.id)}
+                                                onFocus={() => focusNode(node.id)}
+                                                onToggleTask={() => toggleTask(node.id)}
+                                                onToggleComplete={() => toggleComplete(node.id)}
+                                                onBranchOut={() => branchOut(node.id)}
+                                                onEdit={() => editNode(node.id)}
+                                                onSaveEdit={saveEdit}
+                                                onCancelEdit={cancelEdit}
+                                                onJumpToBranch={() => jumpToBranch(node.id)}
+                                            />
+                                        ))}
+                                        
+                                        {/* Empty space at bottom for tree navigation when nodes exist */}
+                                        {trees.length > 1 && (
+                                            <div 
+                                                style={{ 
+                                                    height: '100px', 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    justifyContent: 'center',
+                                                    opacity: 0.5,
+                                                    fontSize: '0.875rem',
+                                                    textAlign: 'center',
+                                                    padding: '0 2rem'
+                                                }}
+                                                {...enhancedTreeSwipeHandlers}
+                                            >
+                                                💡 Swipe here to navigate between trees
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -1727,22 +1804,12 @@
                                 }}
                                 placeholder={
                                     activeTree 
-                                        ? `> ${activeTree.id === 'main' ? 'Main Tree' : activeTree.title}${selectedNode ? `: ${selectedNode.content} (lvl ${selectedNode.level + 1})` : ''} / Swipe left or right here`
-                                        : "> Start your Tree-e / Swipe left or right here"
+                                        ? `${activeTree.id === 'main' ? 'Main Tree' : activeTree.title}${selectedNode ? `: ${selectedNode.content} (lvl ${selectedNode.level + 1})` : ''} / Swipe left or right here`
+                                        : "Start your Tree-e / Swipe left or right here"
                                 }
                                 style={{ color: theme.text }}
                             />
                         </div>
-                        
-                        {trees.length === 0 || (trees.length === 1 && currentNodes.length === 0) ? (
-                            <div className="instructions" style={{ color: theme.text }}>
-                                Tab to indent • Shift+Tab to outdent • Swipe on input box to adjust level • Return to add node • Branch to explore thoughts • Click breadcrumbs to navigate
-                            </div>
-                        ) : ui.currentFilter !== 'all' && (
-                            <div className="instructions" style={{ color: theme.text }}>
-                                Showing {filteredNodes.length} of {currentNodes.length} nodes • Filter: {filterOptions.find(f => f.key === ui.currentFilter)?.label}
-                            </div>
-                        )}
                     </div>
                 )}
 
