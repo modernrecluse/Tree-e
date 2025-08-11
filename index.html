@@ -1045,25 +1045,44 @@
             // Prepare data
             const dataToExport = selectedTreesOnly ? trees.filter(tree => tree.selected) : trees;
             
-            // Include theme data
-            const themeData = {
-                currentTheme,
-                customTheme: customThemes[currentTheme] || null, // Include custom theme definition if applicable
-                isCustomTheme: !builtInThemes[currentTheme]
-            };
+            // Prepare theme data safely
+            let themeData = null;
+            try {
+                themeData = {
+                    currentTheme,
+                    customTheme: customThemes[currentTheme] || null,
+                    isCustomTheme: !builtInThemes[currentTheme]
+                };
+                
+                // Test if theme data can be serialized
+                JSON.stringify(themeData);
+                console.log('Theme data prepared successfully');
+            } catch (themeError) {
+                console.warn('Theme data caused issues, excluding from export:', themeError);
+                themeData = { currentTheme: 'light', customTheme: null, isCustomTheme: false };
+            }
             
             console.log('Preparing data for export...');
-            const jsonData = JSON.stringify({
-                version: '1.1', // Updated version to indicate theme support
+            const exportData = {
+                version: '1.1',
                 timestamp: Date.now(),
                 trees: dataToExport.map(tree => ({
                     ...tree,
                     selected: undefined // Remove selection state from export
-                })),
-                theme: themeData
-            });
+                }))
+            };
 
+            // Only add theme if it's safe
+            if (themeData) {
+                exportData.theme = themeData;
+            }
+
+            const jsonData = JSON.stringify(exportData);
             console.log('Data size:', jsonData.length, 'characters');
+
+            // Test if JSON is valid
+            JSON.parse(jsonData);
+            console.log('JSON validation passed');
 
             // Compress
             console.log('Compressing data...');
@@ -1110,10 +1129,12 @@
             return {
                 qrDataUrl,
                 treeCount: dataToExport.length,
-                nodeCount: dataToExport.reduce((total, tree) => total + tree.nodes.length, 0)
+                nodeCount: dataToExport.reduce((total, tree) => total + tree.nodes.length, 0),
+                includesTheme: !!themeData && themeData.currentTheme !== 'light'
             };
         } catch (error) {
             console.error('QR export failed at step:', error.message);
+            console.error('Full error:', error);
             throw new Error(`Export failed: ${error.message}`);
         }
     };
@@ -1151,7 +1172,13 @@
 
             console.log('Parsing JSON data...');
             // Parse
-            const importedData = JSON.parse(jsonData);
+            let importedData;
+            try {
+                importedData = JSON.parse(jsonData);
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                throw new Error('Invalid data format - corrupted QR code');
+            }
             
             if (!importedData.trees || !Array.isArray(importedData.trees)) {
                 throw new Error('Invalid data structure - trees array missing');
@@ -1162,18 +1189,25 @@
             const processedTrees = importedData.trees.map(tree => ({
                 ...tree,
                 id: tree.id === 'main' ? 'main' : generateId(),
-                nodes: tree.nodes.map(node => ({
-                    ...node,
-                    id: generateId()
-                }))
+                nodes: (tree.nodes || []).map(node => ({
+                    id: generateId(),
+                    content: node.content || '',
+                    level: node.level || 0,
+                    note: node.note || '',
+                    isTask: node.isTask || false,
+                    isCompleted: node.isCompleted || false
+                })),
+                parentTreeId: tree.parentTreeId || null,
+                parentNodeId: tree.parentNodeId || null,
+                breadcrumb: tree.breadcrumb || []
             }));
 
             console.log('Import successful');
 
             return {
                 trees: processedTrees,
-                version: importedData.version,
-                timestamp: importedData.timestamp,
+                version: importedData.version || '1.0',
+                timestamp: importedData.timestamp || Date.now(),
                 theme: importedData.theme || null // Include theme data if present
             };
         } catch (error) {
@@ -1582,6 +1616,22 @@
                 });
             } catch (error) {
                 console.error('QR Export Error:', error);
+                
+                // Try without theme data as fallback
+                try {
+                    console.log('Trying export without theme data...');
+                    const qrDataNoTheme = await exportToQRNoTheme(trees);
+                    updateUi({ 
+                        qrExportData: { ...qrDataNoTheme, includesTheme: false },
+                        showQRExport: true,
+                        showSyncMenu: false
+                    });
+                    alert('QR code generated successfully (without theme data due to compatibility issue)');
+                    return;
+                } catch (fallbackError) {
+                    console.error('Fallback export also failed:', fallbackError);
+                }
+                
                 let errorMessage = 'Failed to generate QR code';
                 
                 if (error.message.includes('too large')) {
@@ -1593,6 +1643,67 @@
                 }
                 
                 alert(errorMessage);
+            }
+        };
+
+        const exportToQRNoTheme = async (trees, selectedTreesOnly = false) => {
+            try {
+                console.log('Starting simple QR export (no theme)...');
+                
+                // Prepare data without theme
+                const dataToExport = selectedTreesOnly ? trees.filter(tree => tree.selected) : trees;
+                
+                const exportData = {
+                    version: '1.0',
+                    timestamp: Date.now(),
+                    trees: dataToExport.map(tree => ({
+                        id: tree.id,
+                        title: tree.title,
+                        nodes: tree.nodes.map(node => ({
+                            id: node.id,
+                            content: node.content,
+                            level: node.level,
+                            note: node.note || '',
+                            isTask: node.isTask || false,
+                            isCompleted: node.isCompleted || false
+                        })),
+                        parentTreeId: tree.parentTreeId,
+                        parentNodeId: tree.parentNodeId,
+                        breadcrumb: tree.breadcrumb || []
+                    }))
+                };
+
+                const jsonData = JSON.stringify(exportData);
+                console.log('Simple data size:', jsonData.length, 'characters');
+
+                // Skip compression for simplicity
+                const key = generateRandomKey();
+                const encrypted = encryptData(jsonData, key);
+                const qrPayload = `tree-e://${encrypted}|${key}`;
+                
+                console.log('Simple QR payload size:', qrPayload.length, 'characters');
+                
+                if (qrPayload.length > 2950) {
+                    throw new Error(`Data too large for QR code (${qrPayload.length} chars)`);
+                }
+                
+                const qrDataUrl = await QRCode.toDataURL(qrPayload, {
+                    width: 300,
+                    margin: 2,
+                    color: { dark: '#000000', light: '#ffffff' },
+                    errorCorrectionLevel: 'M'
+                });
+
+                console.log('Simple QR code generated successfully');
+
+                return {
+                    qrDataUrl,
+                    treeCount: dataToExport.length,
+                    nodeCount: dataToExport.reduce((total, tree) => total + tree.nodes.length, 0)
+                };
+            } catch (error) {
+                console.error('Simple QR export failed:', error);
+                throw error;
             }
         };
 
@@ -2782,8 +2893,7 @@
                                 </p>
                                 <p style={{ fontSize: '0.75rem', opacity: 0.8 }}>
                                     Exporting {ui.qrExportData.treeCount} trees with {ui.qrExportData.nodeCount} total nodes
-                                    <br />
-                                    Including "{theme.name}" theme
+                                    {ui.qrExportData.includesTheme ? <><br />Including "{theme.name}" theme</> : <><br />Theme will use default on import</>}
                                 </p>
                                 <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.5rem' }}>
                                     Open Tree-e on your other device → ⟲ → Import QR → Scan this code
