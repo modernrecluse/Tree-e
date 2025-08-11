@@ -242,31 +242,67 @@
         overflow-x: hidden;
         padding: clamp(0.75rem, 3vw, 1rem);
         position: relative;
+        /* Add extra side padding when multiple trees exist for easier swiping */
+    }
+
+    .tree-container.multi-tree {
+        padding-left: clamp(1.5rem, 5vw, 2rem);
+        padding-right: clamp(1.5rem, 5vw, 2rem);
     }
     
     .swipe-hints {
         position: absolute;
         top: 0;
         bottom: 0;
-        width: 20px;
+        width: clamp(20px, 4vw, 30px);
         pointer-events: none;
         z-index: 10;
-        opacity: 0.3;
-        transition: opacity 0.2s ease;
+        opacity: 0;
+        transition: opacity 0.3s ease;
     }
     
     .swipe-hint-left {
         left: 0;
-        background: linear-gradient(to right, rgba(0,0,0,0.1), transparent);
+        background: linear-gradient(to right, rgba(0,0,0,0.03), transparent);
     }
     
     .swipe-hint-right {
         right: 0;
-        background: linear-gradient(to left, rgba(0,0,0,0.1), transparent);
+        background: linear-gradient(to left, rgba(0,0,0,0.03), transparent);
     }
     
     .swipe-hints.visible {
-        opacity: 0.6;
+        opacity: 1;
+    }
+
+    /* Subtle hint for tree swiping when multiple trees exist */
+    .tree-container.multi-tree::before,
+    .tree-container.multi-tree::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 20px;
+        background: currentColor;
+        opacity: 0.1;
+        border-radius: 2px;
+        pointer-events: none;
+        z-index: 5;
+        transition: opacity 0.3s ease;
+    }
+
+    .tree-container.multi-tree::before {
+        left: 8px;
+    }
+
+    .tree-container.multi-tree::after {
+        right: 8px;
+    }
+
+    .tree-container.multi-tree:hover::before,
+    .tree-container.multi-tree:hover::after {
+        opacity: 0.2;
     }
     
     .nodes-list {
@@ -1031,15 +1067,17 @@
         }
     };
 
-    // Touch handling
+    // Touch handling with smart detection
     const useTouchHandler = (onSwipeLeft, onSwipeRight, threshold = 50) => {
         const touchStart = useRef(null);
         const touchEnd = useRef(null);
+        const touchStartTarget = useRef(null);
 
         return {
             onTouchStart: (e) => {
                 touchEnd.current = null;
                 touchStart.current = e.targetTouches[0].clientX;
+                touchStartTarget.current = e.target;
             },
             onTouchMove: (e) => {
                 touchEnd.current = e.targetTouches[0].clientX;
@@ -1050,6 +1088,50 @@
                 const distance = touchStart.current - touchEnd.current;
                 if (distance > threshold && onSwipeLeft) onSwipeLeft();
                 if (distance < -threshold && onSwipeRight) onSwipeRight();
+            }
+        };
+    };
+
+    // Smart tree navigation that only works on empty space
+    const useSmartTreeSwipe = (onSwipeLeft, onSwipeRight, threshold = 80) => {
+        const touchStart = useRef(null);
+        const touchEnd = useRef(null);
+        const touchStartTarget = useRef(null);
+
+        return {
+            onTouchStart: (e) => {
+                touchEnd.current = null;
+                touchStart.current = e.targetTouches[0].clientX;
+                touchStartTarget.current = e.target;
+            },
+            onTouchMove: (e) => {
+                touchEnd.current = e.targetTouches[0].clientX;
+            },
+            onTouchEnd: (e) => {
+                if (!touchStart.current || !touchEnd.current) return;
+                
+                // Only trigger if touch started on empty space, not on nodes or buttons
+                const target = touchStartTarget.current;
+                const isEmptySpace = target.classList.contains('tree-container') || 
+                                   target.classList.contains('nodes-list') ||
+                                   target.classList.contains('empty-state') ||
+                                   (target.tagName === 'DIV' && !target.closest('.node-content'));
+                
+                if (!isEmptySpace) return;
+                
+                const distance = touchStart.current - touchEnd.current;
+                const absDistance = Math.abs(distance);
+                
+                // Require longer swipe for tree navigation to avoid accidental triggers
+                if (absDistance > threshold) {
+                    if (distance > 0 && onSwipeLeft) {
+                        e.preventDefault();
+                        onSwipeLeft();
+                    } else if (distance < 0 && onSwipeRight) {
+                        e.preventDefault();
+                        onSwipeRight();
+                    }
+                }
             }
         };
     };
@@ -1083,7 +1165,31 @@
         const editInputRef = useRef(null);
         const isBranchedOut = trees.some(tree => tree.parentNodeId === node.id);
         
-        const swipeHandlers = useTouchHandler(onOutdent, onIndent);
+        const swipeHandlers = useTouchHandler(
+            () => {
+                onOutdent();
+            }, 
+            () => {
+                onIndent();
+            }
+        );
+
+        // Prevent tree navigation when swiping on nodes
+        const nodeSwipeHandlers = {
+            ...swipeHandlers,
+            onTouchStart: (e) => {
+                e.stopPropagation(); // Prevent tree swipe
+                swipeHandlers.onTouchStart(e);
+            },
+            onTouchMove: (e) => {
+                e.stopPropagation(); // Prevent tree swipe
+                swipeHandlers.onTouchMove(e);
+            },
+            onTouchEnd: (e) => {
+                e.stopPropagation(); // Prevent tree swipe
+                swipeHandlers.onTouchEnd(e);
+            }
+        };
 
         useEffect(() => {
             if (isEditing && editInputRef.current) {
@@ -1118,7 +1224,7 @@
                             opacity: isBranchedOut && !isEditing ? 0.7 : 1
                         }}
                         onClick={(e) => !isEditing && onTap(e)}
-                        {...(!isEditing ? swipeHandlers : {})}
+                        {...(!isEditing ? nodeSwipeHandlers : {})}
                     >
                         {node.isTask && (
                             <div 
@@ -1513,14 +1619,31 @@
             saveCustomThemes(customThemes);
         }, [customThemes]);
 
-        // Touch handlers for input
+        // Touch handlers for input - prevent tree swipe conflicts
         const inputSwipeHandlers = useTouchHandler(
             () => updateUi({ indentLevel: Math.max(0, ui.indentLevel - 1) }),
             () => updateUi({ indentLevel: ui.indentLevel + 1 })
         );
 
-        // Touch handlers for tree navigation
-        const treeSwipeHandlers = useTouchHandler(
+        // Prevent tree navigation when swiping on input
+        const safeInputSwipeHandlers = {
+            ...inputSwipeHandlers,
+            onTouchStart: (e) => {
+                e.stopPropagation(); // Prevent tree swipe
+                inputSwipeHandlers.onTouchStart(e);
+            },
+            onTouchMove: (e) => {
+                e.stopPropagation(); // Prevent tree swipe
+                inputSwipeHandlers.onTouchMove(e);
+            },
+            onTouchEnd: (e) => {
+                e.stopPropagation(); // Prevent tree swipe
+                inputSwipeHandlers.onTouchEnd(e);
+            }
+        };
+
+        // Touch handlers for tree navigation - smart detection
+        const smartTreeSwipeHandlers = useSmartTreeSwipe(
             () => {
                 // Swipe left = next tree
                 if (trees.length > 1) {
@@ -1541,18 +1664,25 @@
             }
         );
 
-        // Enhanced touch handlers for tree navigation with hints
-        const enhancedTreeSwipeHandlers = {
-            ...treeSwipeHandlers,
+        // Enhanced smart tree swipe handlers with hints
+        const enhancedSmartTreeSwipeHandlers = {
+            ...smartTreeSwipeHandlers,
             onTouchStart: (e) => {
-                if (trees.length > 1) {
+                // Only show hints if touching empty space and have multiple trees
+                const target = e.target;
+                const isEmptySpace = target.classList.contains('tree-container') || 
+                                   target.classList.contains('nodes-list') ||
+                                   target.classList.contains('empty-state') ||
+                                   (target.tagName === 'DIV' && !target.closest('.node-content'));
+                
+                if (trees.length > 1 && isEmptySpace) {
                     updateUi({ showSwipeHints: true });
                 }
-                treeSwipeHandlers.onTouchStart(e);
+                smartTreeSwipeHandlers.onTouchStart(e);
             },
             onTouchEnd: (e) => {
                 updateUi({ showSwipeHints: false });
-                treeSwipeHandlers.onTouchEnd(e);
+                smartTreeSwipeHandlers.onTouchEnd(e);
             }
         };
 
@@ -2070,7 +2200,7 @@
                 onClick={handleBackgroundClick}
             >
                 {/* Header */}
-                <div className="header" style={{ backgroundColor: theme.background, borderColor: theme.border }} {...(trees.length > 1 ? enhancedTreeSwipeHandlers : {})}>
+                <div className="header" style={{ backgroundColor: theme.background, borderColor: theme.border }} {...(trees.length > 1 ? enhancedSmartTreeSwipeHandlers : {})}>
                     <div className="header-main">
                         <div className="header-left">
                             <div className="header-title">
@@ -2373,7 +2503,7 @@
                     </div>
                 ) : (
                     <div className="main-content">
-                        <div className="tree-container">
+                        <div className={`tree-container ${trees.length > 1 ? 'multi-tree' : ''}`} {...(trees.length > 1 ? enhancedSmartTreeSwipeHandlers : {})}>
                             {/* Swipe hints */}
                             {trees.length > 1 && (
                                 <>
@@ -2384,7 +2514,7 @@
                             
                             <div className="nodes-list">
                                 {filteredNodes.length === 0 && currentNodes.length > 0 && ui.currentFilter !== 'all' ? (
-                                    <div className="empty-state" {...enhancedTreeSwipeHandlers}>
+                                    <div className="empty-state" {...enhancedSmartTreeSwipeHandlers}>
                                         <div className="empty-icon">{filterOptions.find(f => f.key === ui.currentFilter)?.icon}</div>
                                         <div className="empty-title">No {filterOptions.find(f => f.key === ui.currentFilter)?.label.toLowerCase()} found</div>
                                         <div className="empty-desc">
@@ -2393,7 +2523,7 @@
                                         </div>
                                     </div>
                                 ) : filteredNodes.length === 0 ? (
-                                    <div className="empty-state" {...enhancedTreeSwipeHandlers}>
+                                    <div className="empty-state" {...enhancedSmartTreeSwipeHandlers}>
                                         <div className="empty-icon">🌱</div>
                                         <div className="empty-title">Empty tree</div>
                                         <div className="empty-desc">
@@ -2447,7 +2577,7 @@
                                                     textAlign: 'center',
                                                     padding: '0 2rem'
                                                 }}
-                                                {...enhancedTreeSwipeHandlers}
+                                                {...enhancedSmartTreeSwipeHandlers}
                                             >
                                                 💡 Swipe here to navigate between trees
                                             </div>
@@ -2472,7 +2602,7 @@
                                 e.stopPropagation();
                                 inputRef.current?.focus();
                             }}
-                            {...inputSwipeHandlers}
+                            {...safeInputSwipeHandlers}
                         >
                             <div className="input-prompt" style={{ color: theme.prompt }}>
                                 >
