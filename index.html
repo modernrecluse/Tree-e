@@ -648,71 +648,71 @@
 <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    // Theme definitions
+    // Theme definitions - Redesigned for better harmony and accessibility
     const themes = {
         matcha: {
             name: 'Matcha',
-            background: '#e9f5e9',
-            text: '#2e4a2e',
-            prompt: '#59784a',
-            border: '#c4d6c4',
-            levelColors: ['#f0f8f0', '#ddf2dd', '#ccedcc', '#bae8ba', '#a9e3a9']
+            background: '#f4faf4',
+            text: '#1e3a1e',
+            prompt: '#4a6741',
+            border: '#c8dcc8',
+            levelColors: ['#e8f5e8', '#d4edd4', '#c0e5c0', '#98d198', '#7bc97b']
         },
         latte: {
             name: 'Latte',
-            background: '#f5f0e9',
-            text: '#4a3e2e',
-            prompt: '#7a6b59',
-            border: '#d6ccc4',
-            levelColors: ['#f8f5f0', '#edebdd', '#e3dccc', '#d9cfba', '#cfc2a9']
+            background: '#fbf8f3',
+            text: '#3d2f1f',
+            prompt: '#8b6f47',
+            border: '#e6d5c3',
+            levelColors: ['#f5ede1', '#ede0d0', '#e5d3bf', '#d4b896', '#c49c6d']
         },
         ocean: {
             name: 'Ocean',
-            background: '#e9f0f5',
-            text: '#2e3e4a',
-            prompt: '#596b7a',
-            border: '#c4ccd6',
-            levelColors: ['#f0f5f8', '#ddebf2', '#ccddec', '#bacfe8', '#a9c2e3']
+            background: '#f6fafc',
+            text: '#1e2a36',
+            prompt: '#4a6578',
+            border: '#c8d8e4',
+            levelColors: ['#e8f4f8', '#d1e7f0', '#b8dae8', '#7cc4e0', '#4a9fd1']
         },
         midnight: {
             name: 'Midnight',
-            background: '#0f0f24',
-            text: '#e1e1e1',
-            prompt: '#8c8c8c',
-            border: '#2e2e45',
-            levelColors: ['#1a1a2e', '#24243a', '#2e2e42', '#38384e', '#424256']
+            background: '#0a0b14',
+            text: '#e2e4e9',
+            prompt: '#9ca3af',
+            border: '#2d3748',
+            levelColors: ['#1a1b26', '#24283b', '#414868', '#565f89', '#7c7f93']
         },
         chess: {
             name: 'Chess',
-            background: '#f7f7f7',
-            text: '#1a1a1a',
-            prompt: '#666666',
-            border: '#e1e1e1',
-            levelColors: ['#ffffff', '#f5f5f5', '#ebebeb', '#e1e1e1', '#d7d7d7']
+            background: '#fafafa',
+            text: '#0a0a0a',
+            prompt: '#525252',
+            border: '#e5e5e5',
+            levelColors: ['#ffffff', '#f8f8f8', '#f0f0f0', '#e8e8e8', '#d6d6d6']
         },
         espresso: {
             name: 'Espresso',
-            background: '#2b1710',
-            text: '#e8d7c4',
-            prompt: '#b89470',
-            border: '#5c3d29',
-            levelColors: ['#3d241a', '#4d2e21', '#5c3829', '#6b4230', '#7a4c37']
+            background: '#1c0f08',
+            text: '#f4e6d7',
+            prompt: '#c4956c',
+            border: '#5d4037',
+            levelColors: ['#2d1b13', '#3e2723', '#5d4037', '#8d6e63', '#a1887f']
         },
         alienGuts: {
             name: 'Alien Guts',
-            background: '#141f14',
-            text: '#d9f2bf',
-            prompt: '#99cc80',
-            border: '#66994d',
-            levelColors: ['#33cc4d', '#9933cc', '#cc9933', '#3399cc', '#cc3366']
+            background: '#0a0015',
+            text: '#e0ffcc',
+            prompt: '#ff66d9',
+            border: '#662266',
+            levelColors: ['#4a1a3d', '#1a4a2d', '#4a4a1a', '#2d1a4a', '#4a2d1a']
         },
         neon: {
             name: 'Neon',
-            background: '#0d0d26',
-            text: '#1a1a1a',
-            prompt: '#cccccc',
-            border: '#666699',
-            levelColors: ['#ff3399', '#33ff99', '#ff9933', '#9933ff', '#33b3ff']
+            background: '#0a0118',
+            text: '#f8fafc',
+            prompt: '#c084fc',
+            border: '#3730a3',
+            levelColors: ['#1e1b4b', '#312e81', '#3730a3', '#4338ca', '#6366f1']
         }
     };
 
