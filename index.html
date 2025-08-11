@@ -21,13 +21,9 @@
 
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 
-<!-- QR Code Libraries -->
+<!-- Simple QR Code Library -->
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 
 <!-- Fonts -->
 
@@ -745,6 +741,32 @@
         background: rgba(34, 197, 94, 0.1);
         border-color: #22c55e;
     }
+
+    /* QR Code specific styles */
+    .qr-display {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        text-align: center;
+        margin-top: 1rem;
+        padding: 1rem;
+        border: 1px dashed;
+        border-radius: 8px;
+    }
+
+    .qr-code {
+        padding: 1rem;
+        background: white;
+        border-radius: 8px;
+        display: inline-block;
+    }
+
+    .qr-instructions {
+        font-size: 0.875rem;
+        opacity: 0.8;
+        line-height: 1.4;
+    }
     
     /* Mobile specific styles */
     @media (max-width: 768px) {
@@ -931,260 +953,54 @@
         return customThemes;
     };
 
-    // QR Code utilities - Simplified approach without external crypto dependencies
-    const generateRandomKey = () => {
-        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    // Simple sync utilities - no external dependencies
+    const generateSyncCode = () => {
+        return Math.random().toString(36).substring(2, 8).toUpperCase();
     };
 
-    const simpleEncrypt = (data, key) => {
+    const exportForSync = (trees, currentTheme, customThemes) => {
         try {
-            // Simple XOR-based encryption
-            const keyBytes = key.split('').map(c => c.charCodeAt(0));
-            const dataBytes = data.split('').map(c => c.charCodeAt(0));
-            
-            const encrypted = dataBytes.map((byte, i) => {
-                return byte ^ keyBytes[i % keyBytes.length];
-            });
-            
-            return btoa(String.fromCharCode(...encrypted));
-        } catch (error) {
-            console.error('Simple encryption failed:', error);
-            throw new Error('Failed to encrypt data');
-        }
-    };
-
-    const simpleDecrypt = (encryptedData, key) => {
-        try {
-            const keyBytes = key.split('').map(c => c.charCodeAt(0));
-            const encryptedBytes = atob(encryptedData).split('').map(c => c.charCodeAt(0));
-            
-            const decrypted = encryptedBytes.map((byte, i) => {
-                return byte ^ keyBytes[i % keyBytes.length];
-            });
-            
-            return String.fromCharCode(...decrypted);
-        } catch (error) {
-            console.error('Simple decryption failed:', error);
-            throw new Error('Failed to decrypt data');
-        }
-    };
-
-    const encryptData = (data, key) => {
-        try {
-            // Try CryptoJS first, fall back to simple encryption
-            if (typeof CryptoJS !== 'undefined' && CryptoJS.AES) {
-                return 'aes:' + CryptoJS.AES.encrypt(data, key).toString();
-            } else {
-                console.log('Using simple encryption fallback');
-                return 'simple:' + simpleEncrypt(data, key);
-            }
-        } catch (error) {
-            console.error('Encryption failed:', error);
-            throw new Error('Failed to encrypt data');
-        }
-    };
-
-    const decryptData = (encryptedData, key) => {
-        try {
-            if (encryptedData.startsWith('aes:')) {
-                // AES encrypted data
-                const aesData = encryptedData.substring(4);
-                if (typeof CryptoJS !== 'undefined' && CryptoJS.AES) {
-                    const bytes = CryptoJS.AES.decrypt(aesData, key);
-                    return bytes.toString(CryptoJS.enc.Utf8);
-                } else {
-                    throw new Error('CryptoJS not available for AES decryption');
-                }
-            } else if (encryptedData.startsWith('simple:')) {
-                // Simple encrypted data
-                const simpleData = encryptedData.substring(7);
-                return simpleDecrypt(simpleData, key);
-            } else {
-                // Legacy format - try simple decryption
-                return simpleDecrypt(encryptedData, key);
-            }
-        } catch (error) {
-            console.error('Decryption failed:', error);
-            throw new Error('Failed to decrypt data');
-        }
-    };
-
-    const compressData = (data) => {
-        try {
-            if (typeof LZString !== 'undefined' && LZString.compress) {
-                return LZString.compress(data);
-            } else {
-                // Simple compression fallback - remove extra whitespace
-                console.log('Using simple compression fallback');
-                return data.replace(/\s+/g, ' ').trim();
-            }
-        } catch (error) {
-            console.error('Compression failed:', error);
-            return data; // Return uncompressed data as fallback
-        }
-    };
-
-    const decompressData = (compressedData) => {
-        try {
-            if (typeof LZString !== 'undefined' && LZString.decompress) {
-                const result = LZString.decompress(compressedData);
-                return result || compressedData; // Return original if decompression fails
-            } else {
-                return compressedData;
-            }
-        } catch (error) {
-            console.error('Decompression failed:', error);
-            return compressedData;
-        }
-    };
-
-    const exportToQR = async (trees, currentTheme, customThemes, selectedTreesOnly = false) => {
-        try {
-            console.log('Starting QR export...');
-            
-            // Prepare data
-            const dataToExport = selectedTreesOnly ? trees.filter(tree => tree.selected) : trees;
-            
-            // Prepare theme data safely
-            let themeData = null;
-            try {
-                themeData = {
+            const exportData = {
+                version: '1.0',
+                timestamp: Date.now(),
+                syncCode: generateSyncCode(),
+                trees: trees.map(tree => ({
+                    id: tree.id,
+                    title: tree.title,
+                    nodes: tree.nodes.map(node => ({
+                        id: node.id,
+                        content: node.content,
+                        level: node.level,
+                        note: node.note || '',
+                        isTask: node.isTask || false,
+                        isCompleted: node.isCompleted || false
+                    })),
+                    parentTreeId: tree.parentTreeId,
+                    parentNodeId: tree.parentNodeId,
+                    breadcrumb: tree.breadcrumb || []
+                })),
+                theme: {
                     currentTheme,
                     customTheme: customThemes[currentTheme] || null,
                     isCustomTheme: !builtInThemes[currentTheme]
-                };
-                
-                // Test if theme data can be serialized
-                JSON.stringify(themeData);
-                console.log('Theme data prepared successfully');
-            } catch (themeError) {
-                console.warn('Theme data caused issues, excluding from export:', themeError);
-                themeData = { currentTheme: 'light', customTheme: null, isCustomTheme: false };
-            }
-            
-            console.log('Preparing data for export...');
-            const exportData = {
-                version: '1.1',
-                timestamp: Date.now(),
-                trees: dataToExport.map(tree => ({
-                    ...tree,
-                    selected: undefined // Remove selection state from export
-                }))
+                }
             };
 
-            // Only add theme if it's safe
-            if (themeData) {
-                exportData.theme = themeData;
-            }
-
-            const jsonData = JSON.stringify(exportData);
-            console.log('Data size:', jsonData.length, 'characters');
-
-            // Test if JSON is valid
-            JSON.parse(jsonData);
-            console.log('JSON validation passed');
-
-            // Compress
-            console.log('Compressing data...');
-            const compressed = compressData(jsonData);
-            console.log('Compressed size:', compressed.length, 'characters');
-            
-            // Generate encryption key
-            console.log('Generating encryption key...');
-            const key = generateRandomKey();
-            
-            // Encrypt
-            console.log('Encrypting data...');
-            const encrypted = encryptData(compressed, key);
-            
-            // Create QR payload
-            const qrPayload = `tree-e://${encrypted}|${key}`;
-            console.log('QR payload size:', qrPayload.length, 'characters');
-            
-            // Check if payload is too large for QR code
-            if (qrPayload.length > 2950) {
-                throw new Error(`Data too large for QR code (${qrPayload.length} chars). Try exporting fewer trees or reducing content.`);
-            }
-            
-            // Generate QR code
-            console.log('Generating QR code...');
-            let qrDataUrl;
-            
-            if (typeof QRCode !== 'undefined') {
-                qrDataUrl = await QRCode.toDataURL(qrPayload, {
-                    width: 300,
-                    margin: 2,
-                    color: {
-                        dark: '#000000',
-                        light: '#ffffff'
-                    },
-                    errorCorrectionLevel: 'M'
-                });
-            } else {
-                throw new Error('QRCode library not available. Please refresh the page and try again.');
-            }
-
-            console.log('QR code generated successfully');
-
-            return {
-                qrDataUrl,
-                treeCount: dataToExport.length,
-                nodeCount: dataToExport.reduce((total, tree) => total + tree.nodes.length, 0),
-                includesTheme: !!themeData && themeData.currentTheme !== 'light'
-            };
+            return JSON.stringify(exportData, null, 2);
         } catch (error) {
-            console.error('QR export failed at step:', error.message);
-            console.error('Full error:', error);
-            throw new Error(`Export failed: ${error.message}`);
+            console.error('Export failed:', error);
+            throw new Error('Failed to export trees');
         }
     };
 
-    const importFromQR = (qrData) => {
+    const importFromSync = (jsonData) => {
         try {
-            console.log('Starting QR import...');
-            
-            // Check if it's a Tree-e QR code
-            if (!qrData.startsWith('tree-e://')) {
-                throw new Error('Not a valid Tree-e QR code');
-            }
-
-            // Extract encrypted data and key
-            const payload = qrData.replace('tree-e://', '');
-            const [encryptedData, key] = payload.split('|');
-            
-            if (!encryptedData || !key) {
-                throw new Error('Invalid QR code format');
-            }
-
-            console.log('Decrypting data...');
-            // Decrypt
-            const compressed = decryptData(encryptedData, key);
-            if (!compressed) {
-                throw new Error('Failed to decrypt data - invalid key or corrupted data');
-            }
-
-            console.log('Decompressing data...');
-            // Decompress
-            const jsonData = decompressData(compressed);
-            if (!jsonData) {
-                throw new Error('Failed to decompress data');
-            }
-
-            console.log('Parsing JSON data...');
-            // Parse
-            let importedData;
-            try {
-                importedData = JSON.parse(jsonData);
-            } catch (parseError) {
-                console.error('JSON parse error:', parseError);
-                throw new Error('Invalid data format - corrupted QR code');
-            }
+            const importedData = JSON.parse(jsonData);
             
             if (!importedData.trees || !Array.isArray(importedData.trees)) {
-                throw new Error('Invalid data structure - trees array missing');
+                throw new Error('Invalid export format');
             }
 
-            console.log('Processing imported trees...');
             // Generate new IDs to avoid conflicts
             const processedTrees = importedData.trees.map(tree => ({
                 ...tree,
@@ -1202,134 +1018,17 @@
                 breadcrumb: tree.breadcrumb || []
             }));
 
-            console.log('Import successful');
-
             return {
                 trees: processedTrees,
                 version: importedData.version || '1.0',
                 timestamp: importedData.timestamp || Date.now(),
-                theme: importedData.theme || null // Include theme data if present
+                syncCode: importedData.syncCode || 'SYNC',
+                theme: importedData.theme || null
             };
         } catch (error) {
-            console.error('Failed to import from QR:', error);
-            throw error;
+            console.error('Import failed:', error);
+            throw new Error('Invalid export format');
         }
-    };
-
-    // QR Scanner component
-    const QRScanner = ({ onScan, onError, onClose }) => {
-        const videoRef = useRef(null);
-        const canvasRef = useRef(null);
-        const intervalRef = useRef(null);
-
-        useEffect(() => {
-            const startScanner = async () => {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: 'environment' }
-                    });
-                    
-                    if (videoRef.current) {
-                        videoRef.current.srcObject = stream;
-                        videoRef.current.play();
-                        
-                        // Start scanning
-                        intervalRef.current = setInterval(scanFrame, 500);
-                    }
-                } catch (err) {
-                    console.error('Failed to start camera:', err);
-                    onError('Failed to access camera. Please ensure camera permissions are granted.');
-                }
-            };
-
-            const scanFrame = () => {
-                if (!videoRef.current || !canvasRef.current) return;
-
-                const video = videoRef.current;
-                const canvas = canvasRef.current;
-                const ctx = canvas.getContext('2d');
-
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0);
-
-                try {
-                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    // Simple QR detection - in a real implementation, you'd use a QR library
-                    // For now, we'll simulate detection
-                    detectQRFromImageData(imageData);
-                } catch (err) {
-                    // Ignore scanning errors
-                }
-            };
-
-            const detectQRFromImageData = (imageData) => {
-                // This is a simplified detection - in reality you'd use jsQR or similar
-                // For demo purposes, we'll just check for manual input
-            };
-
-            startScanner();
-
-            return () => {
-                if (intervalRef.current) {
-                    clearInterval(intervalRef.current);
-                }
-                if (videoRef.current && videoRef.current.srcObject) {
-                    const tracks = videoRef.current.srcObject.getTracks();
-                    tracks.forEach(track => track.stop());
-                }
-            };
-        }, []);
-
-        return (
-            <div>
-                <div className="qr-scanner">
-                    <video
-                        ref={videoRef}
-                        className="qr-video"
-                        playsInline
-                        muted
-                    />
-                    <canvas ref={canvasRef} style={{ display: 'none' }} />
-                    <div className="qr-overlay" />
-                </div>
-                
-                <div style={{ marginTop: '1rem', textAlign: 'center' }}>
-                    <p style={{ fontSize: '0.875rem', opacity: 0.8, marginBottom: '1rem' }}>
-                        Position the QR code within the frame
-                    </p>
-                    
-                    {/* Manual input fallback */}
-                    <details style={{ marginTop: '1rem' }}>
-                        <summary style={{ cursor: 'pointer', fontSize: '0.875rem', opacity: 0.7 }}>
-                            Or enter QR data manually
-                        </summary>
-                        <div style={{ marginTop: '0.5rem' }}>
-                            <input
-                                type="text"
-                                placeholder="Paste tree-e:// QR code data here"
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    border: '1px solid #ccc',
-                                    borderRadius: '4px',
-                                    fontSize: '0.75rem',
-                                    fontFamily: 'monospace'
-                                }}
-                                onPaste={(e) => {
-                                    setTimeout(() => {
-                                        const value = e.target.value;
-                                        if (value.startsWith('tree-e://')) {
-                                            onScan(value);
-                                        }
-                                    }, 10);
-                                }}
-                            />
-                        </div>
-                    </details>
-                </div>
-            </div>
-        );
     };
 
     // Touch handling
@@ -1552,13 +1251,16 @@
             lospecPreview: null,
             focusedNode: null,
             showSwipeHints: false,
-            // QR Code states
-            showQRExport: false,
-            showQRImport: false,
+            // Simple sync states
+            showSyncExport: false,
+            showSyncImport: false,
             showSyncMenu: false,
-            qrExportData: null,
-            qrImportError: null,
-            qrScanError: null
+            syncExportData: null,
+            syncImportData: '',
+            syncImportError: null,
+            // QR states
+            syncQRCode: null,
+            qrGenerating: false
         });
 
         const [customThemes, setCustomThemes] = useState({});
@@ -1599,126 +1301,78 @@
             }
         };
 
-        // QR Code functions
-        const handleQRExport = async () => {
+        const generateQRCode = async (data) => {
             try {
-                // Quick check if we have data to export
+                updateUi({ qrGenerating: true });
+                
+                // Check if data is too large for QR
+                if (data.length > 2950) {
+                    throw new Error('Data too large for QR code. Try reducing content or use copy/paste instead.');
+                }
+                
+                if (typeof QRCode !== 'undefined') {
+                    const qrDataUrl = await QRCode.toDataURL(data, {
+                        width: 300,
+                        margin: 2,
+                        color: {
+                            dark: '#000000',
+                            light: '#ffffff'
+                        },
+                        errorCorrectionLevel: 'M'
+                    });
+                    
+                    updateUi({ 
+                        syncQRCode: qrDataUrl,
+                        qrGenerating: false 
+                    });
+                } else {
+                    throw new Error('QR code library not available');
+                }
+            } catch (error) {
+                console.error('QR generation failed:', error);
+                updateUi({ qrGenerating: false });
+                alert(error.message || 'Failed to generate QR code. Use copy/paste instead.');
+            }
+        };
+
+        // Simple sync functions
+        const handleSyncExport = () => {
+            try {
                 if (trees.length === 0 || trees.every(tree => tree.nodes.length === 0)) {
                     alert('No trees to export! Add some content first.');
                     return;
                 }
 
-                const qrData = await exportToQR(trees, ui.currentTheme, customThemes);
+                const exportData = exportForSync(trees, ui.currentTheme, customThemes);
                 updateUi({ 
-                    qrExportData: qrData,
-                    showQRExport: true,
-                    showSyncMenu: false
+                    syncExportData: exportData,
+                    showSyncExport: true,
+                    showSyncMenu: false,
+                    syncQRCode: null // Reset QR code
                 });
             } catch (error) {
-                console.error('QR Export Error:', error);
-                
-                // Try without theme data as fallback
-                try {
-                    console.log('Trying export without theme data...');
-                    const qrDataNoTheme = await exportToQRNoTheme(trees);
-                    updateUi({ 
-                        qrExportData: { ...qrDataNoTheme, includesTheme: false },
-                        showQRExport: true,
-                        showSyncMenu: false
-                    });
-                    alert('QR code generated successfully (without theme data due to compatibility issue)');
-                    return;
-                } catch (fallbackError) {
-                    console.error('Fallback export also failed:', fallbackError);
-                }
-                
-                let errorMessage = 'Failed to generate QR code';
-                
-                if (error.message.includes('too large')) {
-                    errorMessage = 'Your trees are too large for QR code export. Try exporting fewer trees or reducing content length.';
-                } else if (error.message.includes('QRCode library')) {
-                    errorMessage = 'QR code library failed to load. Please refresh the page and try again.';
-                } else if (error.message.includes('Export failed:')) {
-                    errorMessage = error.message;
-                }
-                
-                alert(errorMessage);
+                console.error('Sync export error:', error);
+                alert('Failed to export trees: ' + error.message);
             }
         };
 
-        const exportToQRNoTheme = async (trees, selectedTreesOnly = false) => {
-            try {
-                console.log('Starting simple QR export (no theme)...');
-                
-                // Prepare data without theme
-                const dataToExport = selectedTreesOnly ? trees.filter(tree => tree.selected) : trees;
-                
-                const exportData = {
-                    version: '1.0',
-                    timestamp: Date.now(),
-                    trees: dataToExport.map(tree => ({
-                        id: tree.id,
-                        title: tree.title,
-                        nodes: tree.nodes.map(node => ({
-                            id: node.id,
-                            content: node.content,
-                            level: node.level,
-                            note: node.note || '',
-                            isTask: node.isTask || false,
-                            isCompleted: node.isCompleted || false
-                        })),
-                        parentTreeId: tree.parentTreeId,
-                        parentNodeId: tree.parentNodeId,
-                        breadcrumb: tree.breadcrumb || []
-                    }))
-                };
-
-                const jsonData = JSON.stringify(exportData);
-                console.log('Simple data size:', jsonData.length, 'characters');
-
-                // Skip compression for simplicity
-                const key = generateRandomKey();
-                const encrypted = encryptData(jsonData, key);
-                const qrPayload = `tree-e://${encrypted}|${key}`;
-                
-                console.log('Simple QR payload size:', qrPayload.length, 'characters');
-                
-                if (qrPayload.length > 2950) {
-                    throw new Error(`Data too large for QR code (${qrPayload.length} chars)`);
-                }
-                
-                const qrDataUrl = await QRCode.toDataURL(qrPayload, {
-                    width: 300,
-                    margin: 2,
-                    color: { dark: '#000000', light: '#ffffff' },
-                    errorCorrectionLevel: 'M'
-                });
-
-                console.log('Simple QR code generated successfully');
-
-                return {
-                    qrDataUrl,
-                    treeCount: dataToExport.length,
-                    nodeCount: dataToExport.reduce((total, tree) => total + tree.nodes.length, 0)
-                };
-            } catch (error) {
-                console.error('Simple QR export failed:', error);
-                throw error;
-            }
-        };
-
-        const handleQRImport = () => {
+        const handleSyncImport = () => {
             updateUi({ 
-                showQRImport: true,
+                showSyncImport: true,
                 showSyncMenu: false,
-                qrImportError: null,
-                qrScanError: null
+                syncImportData: '',
+                syncImportError: null
             });
         };
 
-        const onQRScan = async (qrData) => {
+        const processSyncImport = () => {
             try {
-                const importedData = importFromQR(qrData);
+                if (!ui.syncImportData.trim()) {
+                    updateUi({ syncImportError: 'Please paste the export data' });
+                    return;
+                }
+
+                const importedData = importFromSync(ui.syncImportData);
                 
                 // Merge imported trees
                 const mergedTrees = [...trees];
@@ -1778,18 +1432,50 @@
                 }
                 
                 updateUi({ 
-                    showQRImport: false,
-                    qrImportError: null 
+                    showSyncImport: false,
+                    syncImportError: null,
+                    syncImportData: ''
                 });
                 
                 alert(successMessage);
             } catch (error) {
-                updateUi({ qrImportError: error.message });
+                updateUi({ syncImportError: error.message });
             }
         };
 
-        const onQRScanError = (error) => {
-            updateUi({ qrScanError: error });
+        const copyToClipboard = async (text) => {
+            try {
+                await navigator.clipboard.writeText(text);
+                alert('Copied to clipboard! Now paste this on your other device.');
+            } catch (error) {
+                console.error('Failed to copy to clipboard:', error);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Copied to clipboard! Now paste this on your other device.');
+            }
+        };
+
+        const shareData = async (text) => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Tree-e Export',
+                        text: text
+                    });
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.error('Share failed:', error);
+                        copyToClipboard(text);
+                    }
+                }
+            } else {
+                copyToClipboard(text);
+            }
         };
 
         // Load/Save
@@ -1805,17 +1491,6 @@
             const allAvailableThemes = { ...builtInThemes, ...loadedCustomThemes };
             const themeToUse = allAvailableThemes[savedTheme] ? savedTheme : 'light';
             updateUi({ currentTheme: themeToUse });
-            
-            // Check QR libraries availability
-            if (typeof QRCode === 'undefined') {
-                console.warn('QRCode library not loaded - QR sync will not work');
-            }
-            if (typeof CryptoJS === 'undefined') {
-                console.warn('CryptoJS library not loaded - using fallback encoding');
-            }
-            if (typeof LZString === 'undefined') {
-                console.warn('LZString library not loaded - skipping compression');
-            }
             
             setTimeout(() => {
                 if (inputRef.current) {
@@ -2458,18 +2133,18 @@
                                     >
                                         <button
                                             className="dropdown-item"
-                                            onClick={handleQRExport}
+                                            onClick={handleSyncExport}
                                             disabled={trees.length === 0 || trees.every(tree => tree.nodes.length === 0)}
                                             style={{ color: (trees.length === 0 || trees.every(tree => tree.nodes.length === 0)) ? theme.text + '50' : theme.text }}
                                         >
-                                            <span>📤 Export QR</span>
+                                            <span>📤 Export & QR</span>
                                         </button>
                                         <button
                                             className="dropdown-item"
-                                            onClick={handleQRImport}
+                                            onClick={handleSyncImport}
                                             style={{ color: theme.text }}
                                         >
-                                            <span>📥 Import QR</span>
+                                            <span>📥 Import & Scan</span>
                                         </button>
                                     </div>
                                 )}
@@ -2863,57 +2538,145 @@
                                 <div>• Use Branch to explore thoughts in new trees</div>
                                 <div>• Click breadcrumbs to navigate between trees</div>
                                 <div>• Click "✓ Close" to merge changes back</div>
+                                <div>• Use ⟲ button to sync trees and themes between devices</div>
                                 <div>• Export button shares all trees as Markdown</div>
-                                <div>• Use ⟲ button to sync trees and themes between devices via QR codes</div>
+                                <div>• Export button shares all trees as Markdown</div>
                             </div>
                         </div>
                     </div>
                 </Modal>
 
-                {/* QR Export Modal */}
+                {/* Sync Export Modal */}
                 <Modal
-                    isOpen={ui.showQRExport}
-                    onClose={() => updateUi({ showQRExport: false, qrExportData: null })}
+                    isOpen={ui.showSyncExport}
+                    onClose={() => updateUi({ showSyncExport: false, syncExportData: null, syncQRCode: null })}
                     title="📤 Export to Another Device"
                     theme={theme}
                 >
-                    {ui.qrExportData && (
-                        <div className="qr-display">
-                            <div className="qr-code">
-                                <img 
-                                    src={ui.qrExportData.qrDataUrl} 
-                                    alt="QR Code for Tree-e export"
-                                    style={{ display: 'block' }}
+                    {ui.syncExportData && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{ 
+                                padding: '1rem', 
+                                backgroundColor: getColorForLevel(theme, 1),
+                                borderRadius: '6px',
+                                border: `1px solid ${theme.border}`
+                            }}>
+                                <p style={{ marginBottom: '1rem', fontWeight: '500' }}>
+                                    📱 Copy this data to your other device:
+                                </p>
+                                <textarea
+                                    readOnly
+                                    value={ui.syncExportData}
+                                    style={{
+                                        width: '100%',
+                                        height: '150px',
+                                        padding: '0.5rem',
+                                        fontFamily: 'monospace',
+                                        fontSize: '0.75rem',
+                                        backgroundColor: theme.background,
+                                        color: theme.text,
+                                        border: `1px solid ${theme.border}`,
+                                        borderRadius: '4px',
+                                        resize: 'vertical'
+                                    }}
                                 />
                             </div>
                             
-                            <div className="qr-instructions">
-                                <p style={{ marginBottom: '0.5rem', fontWeight: '500' }}>
-                                    📱 Scan this QR code with your other device
-                                </p>
-                                <p style={{ fontSize: '0.75rem', opacity: 0.8 }}>
-                                    Exporting {ui.qrExportData.treeCount} trees with {ui.qrExportData.nodeCount} total nodes
-                                    {ui.qrExportData.includesTheme ? <><br />Including "{theme.name}" theme</> : <><br />Theme will use default on import</>}
-                                </p>
-                                <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.5rem' }}>
-                                    Open Tree-e on your other device → ⟲ → Import QR → Scan this code
-                                    <br />
-                                    Trees and theme will be synced automatically
-                                </p>
+                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <button
+                                        onClick={() => copyToClipboard(ui.syncExportData)}
+                                        style={{
+                                            background: '#3b82f6',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '8px 16px',
+                                            borderRadius: '6px',
+                                            cursor: 'pointer',
+                                            fontSize: '0.875rem'
+                                        }}
+                                    >
+                                        📋 Copy
+                                    </button>
+                                    {navigator.share && (
+                                        <button
+                                            onClick={() => shareData(ui.syncExportData)}
+                                            style={{
+                                                background: '#22c55e',
+                                                color: 'white',
+                                                border: 'none',
+                                                padding: '8px 16px',
+                                                borderRadius: '6px',
+                                                cursor: 'pointer',
+                                                fontSize: '0.875rem'
+                                            }}
+                                        >
+                                            📤 Share
+                                        </button>
+                                    )}
+                                </div>
+                                
+                                <button
+                                    onClick={() => generateQRCode(ui.syncExportData)}
+                                    disabled={ui.qrGenerating}
+                                    style={{
+                                        background: ui.qrGenerating ? '#94a3b8' : '#8b5cf6',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '8px 16px',
+                                        borderRadius: '6px',
+                                        cursor: ui.qrGenerating ? 'not-allowed' : 'pointer',
+                                        fontSize: '0.875rem'
+                                    }}
+                                >
+                                    {ui.qrGenerating ? '⏳ Generating...' : '📱 QR Code'}
+                                </button>
+                            </div>
+
+                            {/* QR Code Display */}
+                            {ui.syncQRCode && (
+                                <div 
+                                    className="qr-display"
+                                    style={{ 
+                                        borderColor: theme.border,
+                                        backgroundColor: getColorForLevel(theme, 0)
+                                    }}
+                                >
+                                    <div className="qr-code">
+                                        <img 
+                                            src={ui.syncQRCode} 
+                                            alt="QR Code for Tree-e sync"
+                                            style={{ display: 'block' }}
+                                        />
+                                    </div>
+                                    
+                                    <div className="qr-instructions">
+                                        <p style={{ marginBottom: '0.5rem', fontWeight: '500' }}>
+                                            📱 Scan with your other device
+                                        </p>
+                                        <p style={{ fontSize: '0.75rem', opacity: 0.8 }}>
+                                            Open Tree-e → ⟲ → Import Data → Use QR scanner or paste manually
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            <div style={{ fontSize: '0.75rem', opacity: 0.7, textAlign: 'center' }}>
+                                Open Tree-e on your other device → ⟲ → Import Data → Paste or scan
                             </div>
                         </div>
                     )}
                 </Modal>
 
-                {/* QR Import Modal */}
+                {/* Sync Import Modal */}
                 <Modal
-                    isOpen={ui.showQRImport}
-                    onClose={() => updateUi({ showQRImport: false, qrImportError: null, qrScanError: null })}
+                    isOpen={ui.showSyncImport}
+                    onClose={() => updateUi({ showSyncImport: false, syncImportData: '', syncImportError: null })}
                     title="📥 Import from Another Device"
                     theme={theme}
                 >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {ui.qrImportError && (
+                        {ui.syncImportError && (
                             <div style={{ 
                                 padding: '0.75rem', 
                                 background: '#fef2f2', 
@@ -2921,30 +2684,112 @@
                                 borderRadius: '6px',
                                 fontSize: '0.875rem'
                             }}>
-                                ❌ {ui.qrImportError}
+                                ❌ {ui.syncImportError}
                             </div>
                         )}
 
-                        {ui.qrScanError && (
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+                                Paste the export data from your other device:
+                            </label>
+                            <textarea
+                                value={ui.syncImportData}
+                                onChange={(e) => updateUi({ syncImportData: e.target.value, syncImportError: null })}
+                                placeholder="Paste the JSON export data here, or scan QR code below..."
+                                style={{
+                                    width: '100%',
+                                    height: '150px',
+                                    padding: '0.5rem',
+                                    fontFamily: 'monospace',
+                                    fontSize: '0.75rem',
+                                    backgroundColor: getColorForLevel(theme, 1),
+                                    color: getTextColorForBackground(getColorForLevel(theme, 1)),
+                                    border: `1px solid ${theme.border}`,
+                                    borderRadius: '4px',
+                                    resize: 'vertical'
+                                }}
+                            />
+                        </div>
+
+                        {/* QR Scanner option */}
+                        <details style={{ marginTop: '0.5rem' }}>
+                            <summary style={{ cursor: 'pointer', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+                                📱 Or scan QR code from camera
+                            </summary>
                             <div style={{ 
-                                padding: '0.75rem', 
-                                background: '#fef2f2', 
-                                color: '#dc2626', 
+                                padding: '1rem', 
+                                border: `1px dashed ${theme.border}`, 
                                 borderRadius: '6px',
-                                fontSize: '0.875rem'
+                                textAlign: 'center'
                             }}>
-                                📷 {ui.qrScanError}
+                                <p style={{ fontSize: '0.875rem', marginBottom: '1rem', opacity: 0.8 }}>
+                                    Click to start camera and scan QR code
+                                </p>
+                                <button
+                                    onClick={() => {
+                                        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                                            // Simple camera access for QR scanning
+                                            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                                                .then(() => {
+                                                    alert('Camera access granted! Unfortunately, QR scanning requires additional setup. For now, please use the copy/paste method above.');
+                                                })
+                                                .catch(() => {
+                                                    alert('Camera access denied. Please use the copy/paste method above.');
+                                                });
+                                        } else {
+                                            alert('Camera not available. Please use the copy/paste method above.');
+                                        }
+                                    }}
+                                    style={{
+                                        background: '#8b5cf6',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '8px 16px',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        fontSize: '0.875rem'
+                                    }}
+                                >
+                                    📷 Open Camera
+                                </button>
+                                <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', opacity: 0.6 }}>
+                                    Note: Full QR scanning coming soon. Copy/paste works perfectly for now!
+                                </p>
                             </div>
-                        )}
-
-                        <QRScanner
-                            onScan={onQRScan}
-                            onError={onQRScanError}
-                            onClose={() => updateUi({ showQRImport: false })}
-                        />
+                        </details>
+                        
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={() => updateUi({ showSyncImport: false, syncImportData: '', syncImportError: null })}
+                                style={{
+                                    background: theme.border,
+                                    color: theme.text,
+                                    border: 'none',
+                                    padding: '8px 16px',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={processSyncImport}
+                                disabled={!ui.syncImportData.trim()}
+                                style={{
+                                    background: ui.syncImportData.trim() ? '#22c55e' : '#94a3b8',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '8px 16px',
+                                    borderRadius: '6px',
+                                    cursor: ui.syncImportData.trim() ? 'pointer' : 'not-allowed'
+                                }}
+                            >
+                                Import
+                            </button>
+                        </div>
                     </div>
                 </Modal>
-                
+
                 <Modal
                     isOpen={!!ui.focusedNode}
                     onClose={() => updateUi({ focusedNode: null })}
