@@ -931,19 +931,52 @@
         return customThemes;
     };
 
-    // QR Code utilities
+    // QR Code utilities - Simplified approach without external crypto dependencies
     const generateRandomKey = () => {
         return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     };
 
+    const simpleEncrypt = (data, key) => {
+        try {
+            // Simple XOR-based encryption
+            const keyBytes = key.split('').map(c => c.charCodeAt(0));
+            const dataBytes = data.split('').map(c => c.charCodeAt(0));
+            
+            const encrypted = dataBytes.map((byte, i) => {
+                return byte ^ keyBytes[i % keyBytes.length];
+            });
+            
+            return btoa(String.fromCharCode(...encrypted));
+        } catch (error) {
+            console.error('Simple encryption failed:', error);
+            throw new Error('Failed to encrypt data');
+        }
+    };
+
+    const simpleDecrypt = (encryptedData, key) => {
+        try {
+            const keyBytes = key.split('').map(c => c.charCodeAt(0));
+            const encryptedBytes = atob(encryptedData).split('').map(c => c.charCodeAt(0));
+            
+            const decrypted = encryptedBytes.map((byte, i) => {
+                return byte ^ keyBytes[i % keyBytes.length];
+            });
+            
+            return String.fromCharCode(...decrypted);
+        } catch (error) {
+            console.error('Simple decryption failed:', error);
+            throw new Error('Failed to decrypt data');
+        }
+    };
+
     const encryptData = (data, key) => {
         try {
-            if (typeof CryptoJS !== 'undefined') {
-                return CryptoJS.AES.encrypt(data, key).toString();
+            // Try CryptoJS first, fall back to simple encryption
+            if (typeof CryptoJS !== 'undefined' && CryptoJS.AES) {
+                return 'aes:' + CryptoJS.AES.encrypt(data, key).toString();
             } else {
-                // Simple fallback encoding if CryptoJS fails
-                console.warn('CryptoJS not available, using base64 encoding');
-                return btoa(data + '::' + key);
+                console.log('Using simple encryption fallback');
+                return 'simple:' + simpleEncrypt(data, key);
             }
         } catch (error) {
             console.error('Encryption failed:', error);
@@ -953,13 +986,22 @@
 
     const decryptData = (encryptedData, key) => {
         try {
-            if (typeof CryptoJS !== 'undefined') {
-                const bytes = CryptoJS.AES.decrypt(encryptedData, key);
-                return bytes.toString(CryptoJS.enc.Utf8);
+            if (encryptedData.startsWith('aes:')) {
+                // AES encrypted data
+                const aesData = encryptedData.substring(4);
+                if (typeof CryptoJS !== 'undefined' && CryptoJS.AES) {
+                    const bytes = CryptoJS.AES.decrypt(aesData, key);
+                    return bytes.toString(CryptoJS.enc.Utf8);
+                } else {
+                    throw new Error('CryptoJS not available for AES decryption');
+                }
+            } else if (encryptedData.startsWith('simple:')) {
+                // Simple encrypted data
+                const simpleData = encryptedData.substring(7);
+                return simpleDecrypt(simpleData, key);
             } else {
-                // Simple fallback decoding
-                const decoded = atob(encryptedData);
-                return decoded.split('::')[0];
+                // Legacy format - try simple decryption
+                return simpleDecrypt(encryptedData, key);
             }
         } catch (error) {
             console.error('Decryption failed:', error);
@@ -969,12 +1011,12 @@
 
     const compressData = (data) => {
         try {
-            if (typeof LZString !== 'undefined') {
+            if (typeof LZString !== 'undefined' && LZString.compress) {
                 return LZString.compress(data);
             } else {
-                // Fallback - no compression
-                console.warn('LZString not available, skipping compression');
-                return data;
+                // Simple compression fallback - remove extra whitespace
+                console.log('Using simple compression fallback');
+                return data.replace(/\s+/g, ' ').trim();
             }
         } catch (error) {
             console.error('Compression failed:', error);
@@ -984,7 +1026,7 @@
 
     const decompressData = (compressedData) => {
         try {
-            if (typeof LZString !== 'undefined') {
+            if (typeof LZString !== 'undefined' && LZString.decompress) {
                 const result = LZString.decompress(compressedData);
                 return result || compressedData; // Return original if decompression fails
             } else {
