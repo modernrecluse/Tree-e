@@ -1574,61 +1574,36 @@
                         </div>
                     </div>
                     
-                    {/* Breadcrumbs */}
-                    {(trees.length > 1 || trees.some(tree => tree.parentTreeId)) && (
+                    {/* Breadcrumbs - Pure Hierarchy */}
+                    {activeTree?.id !== 'main' && (
                         <div className="breadcrumbs" style={{ color: theme.text }}>
                             <button
                                 className="breadcrumb-btn"
                                 onClick={() => setActiveTree('main')}
-                                style={{
-                                    color: activeTreeId === 'main' ? theme.text : theme.text + '99',
-                                    fontWeight: activeTreeId === 'main' ? '600' : '400'
-                                }}
+                                style={{ color: theme.text + '99' }}
                             >
                                 Main Tree
                             </button>
                             
                             {activeTree?.breadcrumb?.map((crumb, index) => (
                                 <React.Fragment key={index}>
-                                    <span className="breadcrumb-sep">/</span>
+                                    <span className="breadcrumb-sep"> > </span>
                                     <span style={{ color: theme.text + '99' }}>{crumb}</span>
                                 </React.Fragment>
                             ))}
                             
-                            {activeTree?.id !== 'main' && (
-                                <>
-                                    <span className="breadcrumb-sep">/</span>
-                                    <span className="breadcrumb-current" style={{ color: theme.text }}>
-                                        {activeTree?.title}
-                                    </span>
-                                </>
-                            )}
+                            <span className="breadcrumb-sep"> > </span>
+                            <span className="breadcrumb-current" style={{ color: theme.text }}>
+                                {activeTree?.title}
+                            </span>
                             
-                            {trees.length > 1 && trees.map((tree, index) => {
-                                if (tree.id === 'main' || tree.id === activeTreeId) return null;
-                                return (
-                                    <React.Fragment key={tree.id}>
-                                        <span className="breadcrumb-sep" style={{ margin: '0 0.25rem' }}>•</span>
-                                        <button
-                                            className="breadcrumb-btn"
-                                            onClick={() => setActiveTree(tree.id)}
-                                            style={{ color: theme.text + '99' }}
-                                        >
-                                            {tree.title}
-                                        </button>
-                                    </React.Fragment>
-                                );
-                            })}
-                            
-                            {activeTree?.id !== 'main' && (
-                                <button
-                                    className="close-btn"
-                                    onClick={closeTree}
-                                    title="Close tree and merge changes back"
-                                >
-                                    ✓ Close
-                                </button>
-                            )}
+                            <button
+                                className="close-btn"
+                                onClick={closeTree}
+                                title="Close tree and merge changes back"
+                            >
+                                ✓ Close
+                            </button>
                         </div>
                     )}
                 </div>
