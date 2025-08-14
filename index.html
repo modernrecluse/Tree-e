@@ -346,6 +346,7 @@
         transition: transform 0.1s ease;
         max-width: calc(100vw - 60px);
         width: auto;
+        position: relative;
     }
     
     .node-content:active {
@@ -358,6 +359,44 @@
     
     .node-content.completed {
         opacity: 0.6;
+    }
+
+    .node-content.draggable {
+        cursor: grab;
+    }
+
+    .node-content.dragging {
+        opacity: 0.5;
+        transform: scale(0.95);
+        cursor: grabbing;
+    }
+
+    .node-content.drag-over {
+        border-style: dashed;
+        border-width: 2px;
+    }
+
+    .node-content.drag-over-above {
+        border-top: 3px solid #3b82f6;
+    }
+
+    .node-content.drag-over-below {
+        border-bottom: 3px solid #3b82f6;
+    }
+
+    .drag-indicator {
+        position: absolute;
+        left: -8px;
+        width: 4px;
+        height: 100%;
+        background: #3b82f6;
+        border-radius: 2px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .node-content.drag-over .drag-indicator {
+        opacity: 1;
     }
     
     .task-toggle {
@@ -1161,21 +1200,21 @@
         );
     };
 
-    const NodeComponent = ({ node, theme, isSelected, isEditing, editText, onEditTextChange, trees, currentTreeId, onTap, onIndent, onOutdent, onDelete, onFocus, onToggleTask, onToggleComplete, onBranchOut, onEdit, onSaveEdit, onCancelEdit, onJumpToBranch, getTextColorForBackground, getColorForLevel }) => {
+    const NodeComponent = ({ node, theme, isSelected, isEditing, editText, onEditTextChange, trees, currentTreeId, onTap, onIndent, onOutdent, onDelete, onFocus, onToggleTask, onToggleComplete, onBranchOut, onEdit, onSaveEdit, onCancelEdit, onJumpToBranch, getTextColorForBackground, getColorForLevel, isDragging, isDragOver, dragPosition, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd, isFrozen }) => {
         const editInputRef = useRef(null);
         const isBranchedOut = trees.some(tree => tree.parentNodeId === node.id);
         
         const swipeHandlers = useTouchHandler(
             () => {
-                onOutdent();
+                if (!isFrozen) onOutdent();
             }, 
             () => {
-                onIndent();
+                if (!isFrozen) onIndent();
             }
         );
 
-        // Prevent tree navigation when swiping on nodes
-        const nodeSwipeHandlers = {
+        // Prevent tree navigation when swiping on nodes, but disable if frozen
+        const nodeSwipeHandlers = isFrozen ? {} : {
             ...swipeHandlers,
             onTouchStart: (e) => {
                 e.stopPropagation(); // Prevent tree swipe
@@ -1206,6 +1245,31 @@
             }
         };
 
+        const getDragClasses = () => {
+            let classes = 'node-content';
+            if (isSelected) classes += ' selected';
+            if (node.isTask && node.isCompleted) classes += ' completed';
+            if (isFrozen) classes += ' frozen';
+            else if (!isEditing && !isBranchedOut) classes += ' draggable';
+            if (isDragging) classes += ' dragging';
+            if (isDragOver && dragPosition === 'above') classes += ' drag-over-above';
+            if (isDragOver && dragPosition === 'below') classes += ' drag-over-below';
+            return classes;
+        };
+
+        const handleNodeClick = (e) => {
+            if (!isFrozen && !isEditing) {
+                onTap(e);
+            }
+        };
+
+        const handleTaskToggle = (e) => {
+            e.stopPropagation();
+            if (!isFrozen && !isEditing) {
+                onToggleComplete();
+            }
+        };
+
         return (
             <div className="node">
                 <div className="node-indent">
@@ -1216,30 +1280,38 @@
                 
                 <div className="node-content-wrapper">
                     <div 
-                        className={`node-content ${isSelected ? 'selected' : ''} ${node.isTask && node.isCompleted ? 'completed' : ''}`}
+                        className={getDragClasses()}
                         style={{
                             backgroundColor: isSelected ? theme.border : getColorForLevel(theme, node.level),
                             borderColor: isSelected ? theme.text : theme.border,
-                            color: isSelected ? getTextColorForBackground(theme.border) : getTextColorForBackground(getColorForLevel(theme, node.level)),
-                            opacity: isBranchedOut && !isEditing ? 0.7 : 1
+                            color: isSelected ? getTextColorForBackground(theme.border) : getTextColorForBackground(getColorForLevel(theme, node.level))
                         }}
-                        onClick={(e) => !isEditing && onTap(e)}
-                        {...(!isEditing ? nodeSwipeHandlers : {})}
+                        onClick={handleNodeClick}
+                        {...nodeSwipeHandlers}
+                        draggable={!isEditing && !isBranchedOut && !isFrozen}
+                        onDragStart={!isFrozen ? (e) => onDragStart(e, node.id) : undefined}
+                        onDragOver={!isFrozen ? (e) => onDragOver(e, node.id) : undefined}
+                        onDragLeave={!isFrozen ? onDragLeave : undefined}
+                        onDrop={!isFrozen ? (e) => onDrop(e, node.id) : undefined}
+                        onDragEnd={!isFrozen ? onDragEnd : undefined}
+                        title={isFrozen ? "This node is part of a branched tree and cannot be edited here" : undefined}
                     >
+                        {isDragOver && !isFrozen && <div className="drag-indicator" />}
+                        
                         {node.isTask && (
                             <div 
                                 className="task-toggle" 
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (!isEditing) onToggleComplete();
+                                onClick={handleTaskToggle}
+                                style={{ 
+                                    color: node.isCompleted ? '#22c55e' : isSelected ? getTextColorForBackground(theme.border) + '99' : getTextColorForBackground(getColorForLevel(theme, node.level)) + '99',
+                                    cursor: isFrozen ? 'not-allowed' : 'pointer'
                                 }}
-                                style={{ color: node.isCompleted ? '#22c55e' : isSelected ? getTextColorForBackground(theme.border) + '99' : getTextColorForBackground(getColorForLevel(theme, node.level)) + '99' }}
                             >
                                 {node.isCompleted ? '☑' : '☐'}
                             </div>
                         )}
                         
-                        {isEditing ? (
+                        {isEditing && !isFrozen ? (
                             <input
                                 ref={editInputRef}
                                 className="node-edit-input"
@@ -1254,13 +1326,23 @@
                         ) : (
                             <div className={`node-text ${node.isTask && node.isCompleted ? 'completed' : ''}`}>
                                 {node.content}
+                                {isFrozen && (
+                                    <span style={{ 
+                                        fontSize: '0.75rem', 
+                                        opacity: 0.6, 
+                                        marginLeft: '0.5rem',
+                                        fontStyle: 'italic'
+                                    }}>
+                                        (in branch)
+                                    </span>
+                                )}
                             </div>
                         )}
                         
                         {!isEditing && (
                             <div className="node-icons" style={{ color: isSelected ? getTextColorForBackground(theme.border) : getTextColorForBackground(getColorForLevel(theme, node.level)) }}>
-                                {node.isTask && <span>□</span>}
-                                {node.note && node.note.trim() && <span>◊</span>}
+                                {node.isTask && <span>☐</span>}
+                                {node.note && node.note.trim() && <span>📝</span>}
                                 {isBranchedOut && (
                                     <span 
                                         className="branch-link"
@@ -1273,25 +1355,25 @@
                                             color: isSelected ? getTextColorForBackground(theme.border) : getTextColorForBackground(getColorForLevel(theme, node.level))
                                         }}
                                     >
-                                        ⫷
+                                        🌿
                                     </span>
                                 )}
                             </div>
                         )}
                     </div>
                     
-                    {isSelected && !isEditing && (
+                    {isSelected && !isEditing && !isFrozen && (
                         <div className="node-actions">
                             {!isBranchedOut && (
                                 <button className="action-btn edit" onClick={onEdit}>
-                                    ✎ <span>Edit</span>
+                                    ✏️ <span>Edit</span>
                                 </button>
                             )}
                             <button className="action-btn task" onClick={onToggleTask}>
-                                □ <span>{node.isTask ? 'Note' : 'Task'}</span>
+                                ✅ <span>{node.isTask ? 'Note' : 'Task'}</span>
                             </button>
                             <button className="action-btn focus" onClick={onFocus}>
-                                ◊ <span>Notes</span>
+                                📝 <span>Notes</span>
                             </button>
                             <button 
                                 className="action-btn branch" 
@@ -1307,22 +1389,36 @@
                                     'Branch out to explore this thought'
                                 }
                             >
-                                ⫷ <span>Branch</span>
+                                🌿 <span>Branch</span>
                             </button>
                             <button className="action-btn delete" onClick={onDelete}>
-                                ╳ <span>Delete</span>
+                                🗑️ <span>Delete</span>
                             </button>
                         </div>
                     )}
                     
-                    {isEditing && (
+                    {isEditing && !isFrozen && (
                         <div className="node-actions">
                             <button className="action-btn save" onClick={onSaveEdit}>
-                                ✓ <span>Save</span>
+                                ✅ <span>Save</span>
                             </button>
                             <button className="action-btn cancel" onClick={onCancelEdit}>
-                                ✕ <span>Cancel</span>
+                                ❌ <span>Cancel</span>
                             </button>
+                        </div>
+                    )}
+
+                    {isFrozen && isSelected && (
+                        <div style={{ 
+                            marginTop: '8px',
+                            padding: '6px 12px',
+                            background: 'rgba(156, 163, 175, 0.1)',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            color: 'rgba(156, 163, 175, 0.8)',
+                            textAlign: 'center'
+                        }}>
+                            🔒 This node is part of a branched tree. Edit it in the branched tree instead.
                         </div>
                     )}
                 </div>
@@ -1366,7 +1462,11 @@
             syncImportError: null,
             // QR states
             syncQRCode: null,
-            qrGenerating: false
+            qrGenerating: false,
+            // Drag and drop states
+            draggedNodeId: null,
+            dragOverNodeId: null,
+            dragPosition: null // 'above', 'below', or null
         });
 
         const [customThemes, setCustomThemes] = useState({});
@@ -1405,6 +1505,54 @@
                 case 'branched': return targetNodes.filter(node => trees.some(tree => tree.parentNodeId === node.id));
                 default: return targetNodes;
             }
+        };
+
+        // Helper function to check if a node is part of a branched subtree ON THE CURRENT TREE
+        const isNodeInBranchedSubtree = (nodeId, nodeIndex = null) => {
+            const activeTree = getActiveTree();
+            if (!activeTree) return false;
+            
+            // If we're on a branched tree itself, don't freeze anything - allow full editing
+            if (activeTree.parentTreeId) return false;
+            
+            const nodes = activeTree.nodes;
+            const targetIndex = nodeIndex !== null ? nodeIndex : nodes.findIndex(n => n.id === nodeId);
+            
+            if (targetIndex === -1) return false;
+            
+            // Check if this node itself is branched
+            if (trees.some(tree => tree.parentNodeId === nodeId)) {
+                return true;
+            }
+            
+            // Check if this node is a child of a branched node
+            const targetNode = nodes[targetIndex];
+            
+            // Look backwards to find any parent that is branched
+            for (let i = targetIndex - 1; i >= 0; i--) {
+                const potentialParent = nodes[i];
+                
+                // If we find a node at the same or lower level, we've gone too far up
+                if (potentialParent.level <= targetNode.level) {
+                    // If this is a direct parent (one level less) and it's branched, target is in subtree
+                    if (potentialParent.level < targetNode.level && 
+                        trees.some(tree => tree.parentNodeId === potentialParent.id)) {
+                        return true;
+                    }
+                    // If same level or we've gone past any possible parents, stop
+                    if (potentialParent.level <= targetNode.level) {
+                        break;
+                    }
+                }
+                
+                // If we find a branched ancestor, check if target is in its subtree
+                if (potentialParent.level < targetNode.level && 
+                    trees.some(tree => tree.parentNodeId === potentialParent.id)) {
+                    return true;
+                }
+            }
+            
+            return false;
         };
 
         const generateQRCode = async (data) => {
@@ -1736,6 +1884,7 @@
         };
 
         const selectNode = (nodeId) => {
+            // Allow selection of frozen nodes to show the explanation
             if (selectedNodeId === nodeId) {
                 // Deselect
                 setSelectedNodeId(null);
@@ -1757,6 +1906,9 @@
         };
 
         const deleteNode = (nodeId) => {
+            // Check if node is frozen
+            if (isNodeInBranchedSubtree(nodeId)) return;
+            
             updateActiveTree(prevNodes => prevNodes.filter(node => node.id !== nodeId));
             if (selectedNodeId === nodeId) {
                 setSelectedNodeId(null);
@@ -1764,6 +1916,9 @@
         };
 
         const indentNode = (nodeId) => {
+            // Check if node is frozen
+            if (isNodeInBranchedSubtree(nodeId)) return;
+            
             updateActiveTree(prevNodes => prevNodes.map(node =>
                 node.id === nodeId ? { ...node, level: node.level + 1 } : node
             ));
@@ -1771,6 +1926,9 @@
         };
 
         const outdentNode = (nodeId) => {
+            // Check if node is frozen
+            if (isNodeInBranchedSubtree(nodeId)) return;
+            
             updateActiveTree(prevNodes => prevNodes.map(node =>
                 node.id === nodeId ? { ...node, level: Math.max(0, node.level - 1) } : node
             ));
@@ -1778,6 +1936,9 @@
         };
 
         const toggleTask = (nodeId) => {
+            // Check if node is frozen
+            if (isNodeInBranchedSubtree(nodeId)) return;
+            
             updateActiveTree(prevNodes => prevNodes.map(node =>
                 node.id === nodeId ? { ...node, isTask: !node.isTask, isCompleted: false } : node
             ));
@@ -1785,13 +1946,18 @@
         };
 
         const toggleComplete = (nodeId) => {
+            // Check if node is frozen
+            if (isNodeInBranchedSubtree(nodeId)) return;
+            
             updateActiveTree(prevNodes => prevNodes.map(node =>
                 node.id === nodeId ? { ...node, isCompleted: !node.isCompleted } : node
             ));
         };
 
         const editNode = (nodeId) => {
-            // Check if branched out
+            // Check if node is frozen or branched out
+            if (isNodeInBranchedSubtree(nodeId)) return;
+            
             const isBranchedOut = trees.some(tree => tree.parentNodeId === nodeId);
             if (isBranchedOut) return;
             
@@ -1818,6 +1984,9 @@
         };
 
         const focusNode = (nodeId) => {
+            // Check if node is frozen
+            if (isNodeInBranchedSubtree(nodeId)) return;
+            
             const activeTree = getActiveTree();
             const node = activeTree?.nodes.find(n => n.id === nodeId);
             if (node) {
@@ -1835,8 +2004,122 @@
             updateUi({ focusedNode: null });
         };
 
+        // Drag and drop functions
+        const handleDragStart = (e, nodeId) => {
+            // Check if node is frozen
+            if (isNodeInBranchedSubtree(nodeId)) {
+                e.preventDefault();
+                return;
+            }
+            
+            updateUi({ draggedNodeId: nodeId });
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', nodeId);
+        };
+
+        const handleDragOver = (e, nodeId) => {
+            // Check if target node is frozen
+            if (isNodeInBranchedSubtree(nodeId)) {
+                e.dataTransfer.dropEffect = 'none';
+                return;
+            }
+            
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            // Determine if we're dropping above or below
+            const rect = e.currentTarget.getBoundingClientRect();
+            const y = e.clientY;
+            const middle = rect.top + rect.height / 2;
+            const position = y < middle ? 'above' : 'below';
+            
+            updateUi({ 
+                dragOverNodeId: nodeId,
+                dragPosition: position
+            });
+        };
+
+        const handleDragLeave = (e) => {
+            // Only clear if we're actually leaving the node
+            if (!e.currentTarget.contains(e.relatedTarget)) {
+                updateUi({ 
+                    dragOverNodeId: null,
+                    dragPosition: null
+                });
+            }
+        };
+
+        const handleDrop = (e, targetNodeId) => {
+            e.preventDefault();
+            
+            const draggedNodeId = ui.draggedNodeId;
+            const position = ui.dragPosition;
+            
+            // Check if either node is frozen
+            if (isNodeInBranchedSubtree(draggedNodeId) || isNodeInBranchedSubtree(targetNodeId)) {
+                updateUi({ 
+                    draggedNodeId: null, 
+                    dragOverNodeId: null,
+                    dragPosition: null
+                });
+                return;
+            }
+            
+            if (!draggedNodeId || draggedNodeId === targetNodeId) {
+                updateUi({ 
+                    draggedNodeId: null, 
+                    dragOverNodeId: null,
+                    dragPosition: null
+                });
+                return;
+            }
+
+            updateActiveTree(prevNodes => {
+                const nodes = [...prevNodes];
+                const draggedIndex = nodes.findIndex(node => node.id === draggedNodeId);
+                const targetIndex = nodes.findIndex(node => node.id === targetNodeId);
+                
+                if (draggedIndex === -1 || targetIndex === -1) return nodes;
+                
+                // Remove the dragged node
+                const [draggedNode] = nodes.splice(draggedIndex, 1);
+                
+                // Calculate new insertion index
+                let newIndex = targetIndex;
+                if (draggedIndex < targetIndex) {
+                    newIndex = targetIndex - 1; // Adjust for removed node
+                }
+                
+                // Insert based on position
+                if (position === 'above') {
+                    nodes.splice(newIndex, 0, draggedNode);
+                } else {
+                    nodes.splice(newIndex + 1, 0, draggedNode);
+                }
+                
+                return nodes;
+            });
+
+            updateUi({ 
+                draggedNodeId: null, 
+                dragOverNodeId: null,
+                dragPosition: null
+            });
+        };
+
+        const handleDragEnd = () => {
+            updateUi({ 
+                draggedNodeId: null, 
+                dragOverNodeId: null,
+                dragPosition: null
+            });
+        };
+
         // Branch operations
         const branchOut = (nodeId) => {
+            // Check if node is frozen
+            if (isNodeInBranchedSubtree(nodeId)) return;
+            
             const activeTree = getActiveTree();
             if (!activeTree || trees.length >= 5) return;
 
@@ -2165,7 +2448,10 @@
                     showSyncMenu: false,
                     editingNodeId: null,
                     editText: '',
-                    showSwipeHints: false
+                    showSwipeHints: false,
+                    draggedNodeId: null,
+                    dragOverNodeId: null,
+                    dragPosition: null
                 });
                 
                 const activeTree = getActiveTree();
@@ -2533,7 +2819,7 @@
                                     </div>
                                 ) : (
                                     <>
-                                        {filteredNodes.map(node => (
+                                        {filteredNodes.map((node, index) => (
                                             <NodeComponent
                                                 key={node.id}
                                                 node={node}
@@ -2546,6 +2832,15 @@
                                                 currentTreeId={activeTreeId}
                                                 getTextColorForBackground={getTextColorForBackground}
                                                 getColorForLevel={getColorForLevel}
+                                                isDragging={ui.draggedNodeId === node.id}
+                                                isDragOver={ui.dragOverNodeId === node.id}
+                                                dragPosition={ui.dragPosition}
+                                                onDragStart={handleDragStart}
+                                                onDragOver={handleDragOver}
+                                                onDragLeave={handleDragLeave}
+                                                onDrop={handleDrop}
+                                                onDragEnd={handleDragEnd}
+                                                isFrozen={isNodeInBranchedSubtree(node.id, index)}
                                                 onTap={(e) => {
                                                     e.stopPropagation();
                                                     selectNode(node.id);
