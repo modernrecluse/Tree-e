@@ -1229,27 +1229,100 @@
     // ===============================
 
     const qrUtils = {
+        // Compress JSON data to fit in QR codes
+        compressData: (jsonString) => {
+            // Simple compression: remove whitespace and use shorter keys
+            const data = JSON.parse(jsonString);
+            const compressed = {
+                v: data.version || '1.0',
+                t: Date.now(),
+                s: data.syncCode || 'SYNC',
+                trees: data.trees.map(tree => ({
+                    i: tree.id,
+                    n: tree.title,
+                    p: tree.parentTreeId,
+                    pn: tree.parentNodeId,
+                    b: tree.breadcrumb || [],
+                    nodes: tree.nodes.map(node => ({
+                        i: node.id,
+                        c: node.content,
+                        l: node.level,
+                        no: node.note || '',
+                        t: node.isTask || false,
+                        co: node.isCompleted || false
+                    }))
+                })),
+                theme: data.theme
+            };
+            return JSON.stringify(compressed);
+        },
+
+        // Decompress data back to full format
+        decompressData: (compressedString) => {
+            const compressed = JSON.parse(compressedString);
+            return {
+                version: compressed.v || '1.0',
+                timestamp: compressed.t || Date.now(),
+                syncCode: compressed.s || 'SYNC',
+                trees: compressed.trees.map(tree => ({
+                    id: tree.i,
+                    title: tree.n,
+                    parentTreeId: tree.p,
+                    parentNodeId: tree.pn,
+                    breadcrumb: tree.b || [],
+                    nodes: tree.nodes.map(node => ({
+                        id: node.i,
+                        content: node.c,
+                        level: node.l,
+                        note: node.no || '',
+                        isTask: node.t || false,
+                        isCompleted: node.co || false
+                    }))
+                })),
+                theme: compressed.theme
+            };
+        },
+
+        // Generate QR using online service (reliable)
+        generateOnlineQR: (data) => {
+            const compressed = qrUtils.compressData(data);
+            if (compressed.length > 2000) {
+                throw new Error(`Data still too large after compression (${compressed.length} chars). Try reducing content.`);
+            }
+            
+            const encodedData = encodeURIComponent(compressed);
+            return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=png&ecc=M&data=${encodedData}`;
+        },
+
         generate: async (data) => {
             try {
-                if (!window.TreeeQRGenerator) {
-                    throw new Error('QR Generator module not loaded');
-                }
-
-                const qrGenerator = new TreeeQRGenerator();
+                console.log(`📊 Original data size: ${data.length} characters`);
                 
-                // Generate QR code with Tree-e styling
-                const qrDataUrl = qrGenerator.generate(data, {
-                    foregroundColor: '#000000',
-                    backgroundColor: '#ffffff',
-                    moduleSize: 4,
-                    margin: 4
-                });
-
-                console.log('✅ QR code generated successfully (offline)');
-                return qrDataUrl;
+                // Try compression first
+                const compressed = qrUtils.compressData(data);
+                console.log(`📦 Compressed size: ${compressed.length} characters`);
+                
+                // For small data, try offline generator
+                if (compressed.length <= 800 && window.TreeeQRGenerator) {
+                    try {
+                        console.log('🔄 Trying offline QR generation...');
+                        const qrGenerator = new TreeeQRGenerator();
+                        const qrDataUrl = qrGenerator.generate(compressed);
+                        console.log('✅ Offline QR generated successfully');
+                        return qrDataUrl;
+                    } catch (offlineError) {
+                        console.log('⚠️ Offline QR failed, using online fallback');
+                    }
+                }
+                
+                // Use online QR service (more reliable)
+                console.log('🌐 Using online QR service...');
+                const qrUrl = qrUtils.generateOnlineQR(data);
+                console.log('✅ Online QR URL generated');
+                return qrUrl;
                 
             } catch (error) {
-                console.error('QR Generation Error:', error);
+                console.error('❌ QR Generation Error:', error);
                 throw new Error(`QR generation failed: ${error.message}`);
             }
         },
@@ -1262,10 +1335,6 @@
             return await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: 'environment' }
             });
-        },
-
-        getInfo: () => {
-            return window.TreeeQRGenerator ? TreeeQRGenerator.getInfo() : null;
         }
     };
 
@@ -1304,29 +1373,42 @@
         },
 
         import: (jsonData) => {
-            const data = JSON.parse(jsonData);
-            if (!data.trees || !Array.isArray(data.trees)) {
-                throw new Error('Invalid export format');
-            }
+            try {
+                // Try to parse as regular JSON first
+                let data = JSON.parse(jsonData);
+                
+                // If it looks compressed (has 'v' instead of 'version'), decompress it
+                if (data.v && !data.version) {
+                    console.log('📦 Detected compressed data, decompressing...');
+                    data = qrUtils.decompressData(jsonData);
+                }
+                
+                if (!data.trees || !Array.isArray(data.trees)) {
+                    throw new Error('Invalid export format - missing trees data');
+                }
 
-            return {
-                trees: data.trees.map(tree => ({
-                    ...tree,
-                    id: tree.id === 'main' ? 'main' : generateId(),
-                    nodes: (tree.nodes || []).map(node => ({
-                        id: generateId(),
-                        content: node.content || '',
-                        level: node.level || 0,
-                        note: node.note || '',
-                        isTask: node.isTask || false,
-                        isCompleted: node.isCompleted || false
-                    }))
-                })),
-                theme: data.theme || null,
-                version: data.version || '1.0',
-                timestamp: data.timestamp || Date.now(),
-                syncCode: data.syncCode || 'SYNC'
-            };
+                return {
+                    trees: data.trees.map(tree => ({
+                        ...tree,
+                        id: tree.id === 'main' ? 'main' : generateId(),
+                        nodes: (tree.nodes || []).map(node => ({
+                            id: generateId(),
+                            content: node.content || '',
+                            level: node.level || 0,
+                            note: node.note || '',
+                            isTask: node.isTask || false,
+                            isCompleted: node.isCompleted || false
+                        }))
+                    })),
+                    theme: data.theme || null,
+                    version: data.version || '1.0',
+                    timestamp: data.timestamp || Date.now(),
+                    syncCode: data.syncCode || 'SYNC'
+                };
+            } catch (error) {
+                console.error('Import error:', error);
+                throw new Error(`Failed to import data: ${error.message}`);
+            }
         }
     };
 
@@ -1507,21 +1589,59 @@
         );
     };
 
-    const QRDisplay = ({ qrCode, theme }) => (
-        <div className="qr-container">
-            <div className="qr-display">
-                <img src={qrCode} alt="QR Code" style={{ display: 'block' }} />
+    const QRDisplay = ({ qrCode, theme }) => {
+        const isDataUrl = qrCode && qrCode.startsWith('data:');
+        const isUrl = qrCode && qrCode.startsWith('http');
+        
+        return (
+            <div className="qr-container">
+                <div className="qr-display">
+                    {isDataUrl ? (
+                        <img src={qrCode} alt="QR Code" style={{ display: 'block' }} />
+                    ) : isUrl ? (
+                        <img 
+                            src={qrCode} 
+                            alt="QR Code"
+                            style={{ display: 'block' }}
+                            onError={(e) => {
+                                console.error('QR image failed to load');
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'block';
+                            }}
+                        />
+                    ) : (
+                        <div style={{ padding: '2rem', color: '#ef4444' }}>
+                            Failed to generate QR code
+                        </div>
+                    )}
+                    {isUrl && (
+                        <div style={{ display: 'none', padding: '1rem', textAlign: 'center', fontSize: '0.75rem' }}>
+                            <p>QR image failed to load.</p>
+                            <p>You may be offline. Use copy/paste instead.</p>
+                        </div>
+                    )}
+                </div>
+                <div className="qr-instructions">
+                    <p style={{ marginBottom: '0.5rem', fontWeight: '500' }}>
+                        📱 Scan with your other device
+                    </p>
+                    <p style={{ fontSize: '0.75rem', opacity: 0.8 }}>
+                        Open Tree-e → ⟲ → Import Data → Use camera or paste manually
+                    </p>
+                    {isUrl && (
+                        <p style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: '0.5rem' }}>
+                            🌐 Generated using online service (requires internet)
+                        </p>
+                    )}
+                    {isDataUrl && (
+                        <p style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: '0.5rem' }}>
+                            📱 Generated offline
+                        </p>
+                    )}
+                </div>
             </div>
-            <div className="qr-instructions">
-                <p style={{ marginBottom: '0.5rem', fontWeight: '500' }}>
-                    📱 Scan with your other device
-                </p>
-                <p style={{ fontSize: '0.75rem', opacity: 0.8 }}>
-                    Open Tree-e → ⟲ → Import Data → Use camera or paste manually
-                </p>
-            </div>
-        </div>
-    );
+        );
+    };
 
     const QRScanner = ({ onScan, onError, theme }) => {
         const videoRef = useRef(null);
@@ -1875,15 +1995,21 @@
         const generateQRCode = useCallback(async (data) => {
             try {
                 updateState({ qrGenerating: true });
-                const qrDataUrl = await qrUtils.generate(data);
-                updateState({ syncQRCode: qrDataUrl, qrGenerating: false });
+                const qrResult = await qrUtils.generate(data);
+                updateState({ syncQRCode: qrResult, qrGenerating: false });
             } catch (error) {
-                console.error('QR generation failed:', error);
+                console.error('❌ QR generation failed:', error);
                 updateState({ qrGenerating: false });
                 
-                const errorMessage = error.message.includes('too large') 
-                    ? 'Data is too large for QR code. Try reducing the number of trees or content.'
-                    : `QR generation failed: ${error.message}. Please use copy/paste instead.`;
+                let errorMessage = 'QR generation failed. ';
+                
+                if (error.message.includes('too large')) {
+                    errorMessage += `Your data is too large for QR codes (${error.message}). Try:\n\n• Reducing the number of trees\n• Shortening node content\n• Using copy/paste instead`;
+                } else if (error.message.includes('network') || error.message.includes('internet')) {
+                    errorMessage += 'Network issue detected. Check your internet connection or use copy/paste.';
+                } else {
+                    errorMessage += `${error.message}\n\nPlease use the copy/paste method instead.`;
+                }
                     
                 alert(errorMessage);
             }
@@ -2521,14 +2647,15 @@
                 }
             }, 100);
             
-            // Check QR module loading
+            // Log QR capabilities
             setTimeout(() => {
-                if (window.TreeeQRGenerator) {
-                    console.log('✅ Tree-e QR Generator loaded successfully');
-                    console.log('📊 QR Info:', TreeeQRGenerator.getInfo());
-                } else {
-                    console.warn('❌ Tree-e QR Generator module failed to load');
-                }
+                console.log('🔄 Tree-e QR System initialized');
+                console.log('📊 QR Capabilities:', {
+                    offline: !!window.TreeeQRGenerator,
+                    online: navigator.onLine,
+                    compression: true,
+                    maxRecommendedNodes: '~50-100 nodes'
+                });
             }, 500);
         }, []);
 
