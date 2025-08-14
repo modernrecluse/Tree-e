@@ -1444,6 +1444,7 @@
         const [appState, dispatch] = useReducer(appReducer, initialAppState);
         
         const inputRef = useRef(null);
+        const treeContainerRef = useRef(null);
         
         // Derived state
         const allThemes = useMemo(() => ({ ...THEMES, ...customThemes }), [customThemes]);
@@ -1485,6 +1486,13 @@
                 selectedNodeId: null, 
                 indentLevel: 0 
             });
+
+            // Scroll to top when switching trees
+            setTimeout(() => {
+                if (treeContainerRef.current) {
+                    treeContainerRef.current.scrollTop = 0;
+                }
+            }, 50);
         }, [updateState]);
 
         const isNodeInBranchedSubtree = useCallback((nodeId, nodeIndex = null) => {
@@ -1676,6 +1684,25 @@
             });
             
             updateState({ currentInput: '', indentLevel: newLevel });
+
+            // Scroll to the new node after it's added
+            setTimeout(() => {
+                if (treeContainerRef.current) {
+                    // If we're adding at the end, scroll to bottom
+                    if (insertIndex >= nodes.length) {
+                        treeContainerRef.current.scrollTop = treeContainerRef.current.scrollHeight;
+                    } else {
+                        // Otherwise, find the new node and scroll to it
+                        const nodeElements = treeContainerRef.current.querySelectorAll('.node');
+                        if (nodeElements[insertIndex]) {
+                            nodeElements[insertIndex].scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'center' 
+                            });
+                        }
+                    }
+                }
+            }, 50); // Small delay to ensure DOM is updated
         }, [appState.currentInput, appState.indentLevel, appState.selectedNodeId, activeTree, updateActiveTree, updateState]);
 
         const selectNode = useCallback((nodeId) => {
@@ -1690,6 +1717,20 @@
                     selectedNodeId: nodeId,
                     indentLevel: node ? node.level + 1 : 0
                 });
+
+                // Scroll selected node into view
+                setTimeout(() => {
+                    if (treeContainerRef.current) {
+                        const nodeElements = treeContainerRef.current.querySelectorAll('.node');
+                        const nodeIndex = activeTree?.nodes.findIndex(n => n.id === nodeId);
+                        if (nodeIndex !== -1 && nodeElements[nodeIndex]) {
+                            nodeElements[nodeIndex].scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'center' 
+                            });
+                        }
+                    }
+                }, 50);
             }
         }, [appState.selectedNodeId, activeTree, updateState]);
 
@@ -2592,7 +2633,11 @@
                     </div>
                 ) : (
                     <div className="main-content">
-                        <div className={`tree-container ${trees.length > 1 ? 'multi-tree' : ''}`} {...(trees.length > 1 ? enhancedSmartTreeSwipeHandlers : {})}>
+                        <div 
+                            ref={treeContainerRef}
+                            className={`tree-container ${trees.length > 1 ? 'multi-tree' : ''}`} 
+                            {...(trees.length > 1 ? enhancedSmartTreeSwipeHandlers : {})}
+                        >
                             {/* Swipe hints */}
                             {trees.length > 1 && (
                                 <>
