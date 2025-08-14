@@ -40,6 +40,8 @@
         -webkit-tap-highlight-color: transparent;
         overflow-x: hidden;
         font-size: 16px;
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
     }
     
     .app {
@@ -49,6 +51,11 @@
         flex-direction: column;
         overflow: hidden;
         width: 100vw;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
     }
     
     .header {
@@ -58,6 +65,7 @@
         flex-shrink: 0;
         border-bottom: 1px solid rgba(0,0,0,0.08);
         gap: 0.5rem;
+        min-height: 0; /* Important for flex layout */
     }
     
     .header-main {
@@ -218,6 +226,8 @@
         display: flex;
         flex-direction: column;
         position: relative;
+        min-height: 0; /* Important for flex layout */
+        height: 0; /* Force flex item to respect container height */
     }
     
     .tree-container {
@@ -226,6 +236,10 @@
         overflow-x: hidden;
         padding: clamp(0.75rem, 3vw, 1rem);
         position: relative;
+        min-height: 0; /* Important for flex layout */
+        /* Ensure smooth scrolling on mobile */
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
     }
 
     .tree-container.multi-tree {
@@ -291,7 +305,8 @@
         display: flex;
         flex-direction: column;
         gap: 0.125rem;
-        padding-bottom: 2rem;
+        padding-bottom: 4rem; /* Increased padding to ensure last item is visible */
+        min-height: 100%; /* Ensure it takes full height of container */
     }
     
     .node {
@@ -457,6 +472,10 @@
         flex-shrink: 0;
         padding: 16px;
         border-top: 1px solid rgba(0,0,0,0.08);
+        min-height: 0; /* Important for flex layout */
+        /* Ensure it stays visible above mobile keyboards */
+        position: relative;
+        z-index: 10;
     }
     
     .input-container {
@@ -510,6 +529,8 @@
         gap: 1rem;
         padding: 3rem 1rem;
         text-align: center;
+        min-height: 50vh; /* Ensure it takes up adequate space */
+        justify-content: center;
     }
     
     .empty-icon {
@@ -638,6 +659,7 @@
         flex-direction: column;
         flex: 1;
         overflow: hidden;
+        min-height: 0; /* Important for flex layout */
     }
     
     .markdown-header {
@@ -645,6 +667,7 @@
         border-bottom: 1px solid rgba(0,0,0,0.08);
         display: flex;
         justify-content: flex-end;
+        flex-shrink: 0;
     }
     
     .download-btn {
@@ -666,6 +689,7 @@
         white-space: pre-wrap;
         line-height: 1.6;
         font-size: 0.875rem;
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
     }
 
     .sync-options {
@@ -770,6 +794,14 @@
     
     /* Mobile optimizations */
     @media (max-width: 768px) {
+        .app {
+            /* Ensure proper mobile viewport handling */
+            height: 100vh;
+            height: 100dvh;
+            /* Prevent zoom on input focus */
+            -webkit-text-size-adjust: 100%;
+        }
+        
         .header {
             padding: 0.75rem;
         }
@@ -798,6 +830,38 @@
         
         .input-prompt {
             font-size: 1.125rem;
+        }
+        
+        /* Ensure tree container has proper scrolling on mobile */
+        .tree-container {
+            padding: 0.75rem;
+        }
+        
+        /* Better touch targets for mobile */
+        .node-content {
+            min-height: 44px; /* iOS recommended touch target size */
+            padding: 12px;
+        }
+        
+        /* Prevent overscroll bounce on body */
+        body {
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
+        }
+    }
+    
+    /* Additional fix for very small screens */
+    @media (max-width: 480px) {
+        .input-area {
+            padding: 12px;
+        }
+        
+        .tree-container {
+            padding: 0.5rem;
+        }
+        
+        .header {
+            padding: 0.5rem;
         }
     }
 </style>
